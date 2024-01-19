@@ -1,3 +1,0 @@
-include ':godot-lib'
-include ':fmod-android-plugin'
-rootProject.name = "fmod-android-plugin"

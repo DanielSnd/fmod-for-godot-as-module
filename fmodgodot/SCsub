@@ -1,0 +1,34 @@
+# SCsub
+
+Import('env')
+
+if ARGUMENTS.get('fmodgodot', 'yes') == 'yes':
+    sources=[
+        "fmod_assets.cpp",
+        "fmod_studio_editor_module.cpp",
+        "fmod_studio_module.cpp",
+        "fmod_types.cpp",
+        "fmod_settings.cpp",
+        "register_types.cpp",
+        "utils/runtime_utils.cpp",
+        "utils/debug_monitors.cpp",
+        "scene/studio_bank_loader.cpp",
+        "scene/studio_event_emitter.cpp",
+        "scene/studio_global_parameter_trigger.cpp",
+        "scene/studio_listener.cpp",
+        "scene/studio_parameter_trigger.cpp",
+        "api/studio_api.cpp",
+        "fmod_runtime.cpp"
+    ]
+    if env["target"] == "template_debug":
+        env.Append(CPPDEFINES=["FMOD_DEBUG"])
+    if env["target"] == "editor":
+        sources.append([
+        "editor/inspector_browser.cpp",
+        "editor/project_browser.cpp",
+        "editor/studio_event_emitter_3d_gizmo_plugin.cpp",
+        ])
+
+    module_env = env.Clone()
+    module_env.add_source_files(module_env.modules_sources, sources)
+    module_env.Append(CPPPATH=[".", "editor", "api","misc","scene","utils", "lib/core/inc", "lib/studio/inc", "lib/core/lib/x64", "lib/studio/lib/x64"])

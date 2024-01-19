@@ -1,14 +1,31 @@
-# FMOD for Godot
+# FMOD for Godot 4.2+ (Converted from GDEXtension to Custom Module)
 
 [![Build](https://github.com/alessandrofama/fmod-for-godot/workflows/Build/badge.svg)](https://github.com/alessandrofama/fmod-for-godot/actions/workflows/build_all.yml) [![Discord](https://img.shields.io/discord/1083520667451920394?label=Discord)](https://discord.gg/XQbvRdQcNn)
 
-Welcome! This repository provides an integration of [FMOD Studio's audio middleware](https://www.fmod.com/) into the [Godot game engine](https://godotengine.org). At the moment, **FMOD version 2.02.17** and **Godot 4.1.1 stable** are supported.
+Welcome! This repository provides an integration of [FMOD Studio's audio middleware](https://www.fmod.com/) into the [Godot game engine](https://godotengine.org). At the moment, **FMOD version 2.02.17** and **Godot 4.2+ stable** are supported.
 
 <img src="https://alessandrofama.com/wp-content/uploads/sites/3/fmod-for-godot-1920.png" width="720">
 
+## As a module
+
+This fork takes the great work done by Alessandro Fama with his GDExtension and converts it into a Custom Module that you can compile into the engine itself.
+
+One thing to note at this point is that I have only adjusted the **config.py** file for Windows 64-bits, so if you're building for a different platform please go into config.py and adjust it for your platform.
+
+Another thing to note is that when I'm developing my custom modules I have it in a folder called modules outside of the godot folder and I compile it with the scons setting: `custom_modules=../modules` so you either have to do the same or change the path to the fmod libraries on **config.py**, example of how it is right now:
+
+```python
+            env.Append(LIBPATH=["#../modules/fmodgodot/lib/core/lib/x64/"])
+            env.Append(LIBPATH=["#../modules/fmodgodot/lib/studio/lib/x64/"])
+```
+
+About the fmod libraries, it's important to point out that the FMOD libraries in this project and FMOD itself is not free and has different license schemes depending on the type and budget of your project.
+
+You can find out more about FMOD licensing [here](https://www.fmod.com/licensing). Please make sure to obtain a license for your commercial game.
+
 ## Features
 
-* Use the FMOD Studio API on different platforms (Windows, macOS, Linux, iOS and Android) with a [GDExtension library](https://docs.godotengine.org/en/latest/tutorials/scripting/gdextension/what_is_gdextension.html) that seamlessly integrates with Godot and GDScript.
+* Use the FMOD Studio API on different platforms (Windows, ~macOS, Linux, iOS and Android~) with a Custom Module that seamlessly integrates with Godot and GDScript.
 * Modify and build the library for any target platform with ease using SCons, a flexible and cross-platform software construction tool.
 * Streamlined audio authoring workflow with FMOD Studio Live Update, which lets you sync your audio project with your game in the editor or in a build. Experiment and iterate faster without reloading or recompiling your game.
 * Custom blocking I/O implementation that uses Godot's `FileAccess` API. This ensures compatibility across different platforms.
