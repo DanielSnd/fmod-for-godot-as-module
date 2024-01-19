@@ -18,6 +18,7 @@ Another thing to note is that when I'm developing my custom modules I have it in
             env.Append(LIBPATH=["#../modules/fmodgodot/lib/core/lib/x64/"])
             env.Append(LIBPATH=["#../modules/fmodgodot/lib/studio/lib/x64/"])
 ```
+One last thing, if you're following Alessandro's [getting started](https://alessandrofama.com/tutorials/fmod/godot/getting-started) guide, the main difference is that there's a "fmod_enabled" setting in the FMOD settings window. After toggling that setting to true and restarting godot the module will be fully enabled and the other settings will appear.
 
 About the fmod libraries, it's important to point out that the FMOD libraries in this project and FMOD itself is not free and has different license schemes depending on the type and budget of your project.
 
@@ -39,7 +40,7 @@ You can find out more about FMOD licensing [here](https://www.fmod.com/licensing
 
 ## Getting started
 
-If you are a game developer that would like to integrate FMOD into your Godot project, go to the [releases](https://github.com/alessandrofama/fmod-for-godot/releases) page to download the addon and read the [getting started](https://alessandrofama.com/tutorials/fmod/godot/getting-started) guide.
+If you are a game developer that would like to integrate FMOD into your Godot project, ~go to the [releases](https://github.com/alessandrofama/fmod-for-godot/releases) page to download the addon~ compile this module into the engine and read the [getting started](https://alessandrofama.com/tutorials/fmod/godot/getting-started) guide.
 
 If you would like to modify the code of the FMOD addon or build it yourself, visit the short [Building](https://alessandrofama.com/tutorials/fmod/godot/building) tutorial for build instructions.
 
