@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "fmod_runtime.h"
 #include "fmod_studio_editor_module.h"
 
 using namespace godot;
@@ -125,6 +126,8 @@ void EventAsset::_bind_methods()
 	ClassDB::bind_method(D_METHOD("get_max_distance"), &EventAsset::get_max_distance);
 	ClassDB::bind_method(D_METHOD("set_parameters", "parameters"), &EventAsset::set_parameters);
 	ClassDB::bind_method(D_METHOD("get_parameters"), &EventAsset::get_parameters);
+	ClassDB::bind_method(D_METHOD("play_one_shot","position"), &EventAsset::play_one_shot,DEFVAL(Variant{}));
+	ClassDB::bind_method(D_METHOD("play_one_shot_attached","node"), &EventAsset::play_one_shot_attached);
 	ClassDB::bind_method(D_METHOD("set_event_ref_from_description", "description"),
 			&EventAsset::set_event_ref_from_description_ref);
 
@@ -327,6 +330,14 @@ void EventAsset::set_event_ref_from_description_ref(const Ref<StudioApi::EventDe
 		String _guid = param->get_guid();
 		parameters[_guid] = param;
 	}
+}
+
+void EventAsset::play_one_shot_attached(Node *node) {
+	FMODRuntime::get_singleton()->play_one_shot_attached_id(get_guid(),node);
+}
+
+void EventAsset::play_one_shot(const Variant &position) {
+	FMODRuntime::get_singleton()->play_one_shot_id(get_guid(),position);
 }
 
 void EventAsset::set_3d(bool _is_3d)

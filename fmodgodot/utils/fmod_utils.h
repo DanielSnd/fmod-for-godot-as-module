@@ -98,6 +98,8 @@ static Variant get_platform_project_setting(const String& setting, bool force_pl
 	platformSetting = platformSetting + get_platform_setting_path(PlatformSettingsPath::GODOT_MAC_OSX_SETTING_POSTFIX);
 #elif FMOD_LINUX
 	platformSetting = platformSetting + get_platform_setting_path(PlatformSettingsPath::GODOT_LINUX_SETTING_POSTFIX);
+#elif FMOD_WEB
+	platformSetting = platformSetting;
 #elif FMOD_IOS
 	platformSetting = platformSetting + get_platform_setting_path(PlatformSettingsPath::GODOT_IOS_SETTING_POSTFIX);
 #elif FMOD_ANDROID

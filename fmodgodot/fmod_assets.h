@@ -62,6 +62,10 @@ public:
 
 	void set_event_ref_from_description_ref(const Ref<StudioApi::EventDescription>& event_description);
 
+	void play_one_shot_attached(Node *node);
+
+	void play_one_shot(const Variant &position);
+
 	void set_3d(bool is_3d);
 	bool get_3d() const;
 

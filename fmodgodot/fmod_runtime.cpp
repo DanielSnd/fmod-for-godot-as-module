@@ -65,7 +65,11 @@ void FMODRuntime::do_enter_tree() {
         studio_system = FMODStudioModule::get_singleton()->get_studio_system_ref();
 
         has_initialized = true;
-        if (OS::get_singleton()->has_feature("editor")) {
+
+        const String settings_path = get_platform_setting_path(PlatformSettingsPath::FMOD_SETTINGS_PATH);
+        const bool enable_debug_performance =
+                static_cast<bool>(get_platform_project_setting(settings_path + String("debug_performance")));
+        if (OS::get_singleton()->has_feature("editor") && enable_debug_performance) {
             debug_scene = memnew(FMODDebugMonitor);
             call_deferred("add_child",debug_scene);
         }

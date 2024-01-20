@@ -1,6 +1,6 @@
 #config.py
 
-AVAILABLE_PLATFORMS = ["windows", "macos", "linuxbsd"]
+AVAILABLE_PLATFORMS = ["windows", "macos", "linuxbsd","web"]
 
 def can_build(env, platform):
     return platform in AVAILABLE_PLATFORMS
@@ -22,9 +22,8 @@ def configure(env):
             env.Append(LIBS=["fmod_vc", "fmodstudio_vc"])
         env.Append(CPPDEFINES=["FMOD_WIN"])
     elif env["platform"] == "macos":
-        env.Append(
-            LIBPATH=["#../modules/fmodgodot/lib/core/lib/", "#../modules/fmodgodot/lib/studio/lib/"])
-        env.Append(LIBS=[CORE_LIBRARY_NAME, STUDIO_LIBRARY_NAME])
+        env.Append(LIBPATH=["#../modules/fmodgodot/lib/core/lib/", "#../modules/fmodgodot/lib/studio/lib/"])
+        env.Append(LIBS=["fmod", "fmodstudio"])
         env.Append(CPPDEFINES=["FMOD_OSX"])
     elif env["platform"] == "linuxbsd":
         env.Append(
@@ -32,3 +31,7 @@ def configure(env):
         env.Append(LIBS=["lib" + CORE_LIBRARY_NAME, "lib" + STUDIO_LIBRARY_NAME])
         env.Append(RPATH=["\$$ORIGIN:."])
         env.Append(CPPDEFINES=["FMOD_LINUX"])
+    elif env["platform"] == "web":
+        env.Append(CPPDEFINES=["FMOD_WEB"])
+        env.AddJSLibraries(["#../modules/fmodgodot/lib/core/lib/upstream/js/fmod_reduced.js","#../modules/fmodgodot/lib/studio/lib/upstream/js/fmodstudio.js"])
+        env.AddJSExterns(["#../modules/fmodgodot/lib/core/lib/upstream/js/fmod_reduced.js.mem","#../modules/fmodgodot/lib/studio/lib/upstream/js/fmodstudio.js.mem"])

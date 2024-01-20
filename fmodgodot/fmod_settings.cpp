@@ -91,6 +91,7 @@ void FMODSettings::add_fmod_settings()
 	add_setting(settings_path + String("sample_rate"), 48000, Variant::Type::INT);
 	add_setting(settings_path + String("speaker_mode"), 3, Variant::Type::INT, PROPERTY_HINT_ENUM,
 			"Default,Raw,Mono,Stereo,Quad,Surround,5.1,7.1,7.1.4");
+	add_setting(settings_path + String("debug_performance"), false, Variant::Type::BOOL,PROPERTY_HINT_NONE,"",PROPERTY_USAGE_DEFAULT,true);
 	add_setting(settings_path + String("dsp_buffer_length"), 512, Variant::Type::INT);
 	add_setting(settings_path + String("dsp_buffer_count"), 4, Variant::Type::INT);
 	add_setting(settings_path + String("real_channel_count"), 32, Variant::Type::INT);
