@@ -333,10 +333,16 @@ void EventAsset::set_event_ref_from_description_ref(const Ref<StudioApi::EventDe
 }
 
 void EventAsset::play_one_shot_attached(Node *node) {
+	if (!Engine::get_singleton()->is_editor_hint() && !FMODStudioModule::get_singleton()->already_initialized) {
+		return;
+	}
 	FMODRuntime::get_singleton()->play_one_shot_attached_id(get_guid(),node);
 }
 
 void EventAsset::play_one_shot(const Variant &position) {
+	if (!Engine::get_singleton()->is_editor_hint() && !FMODStudioModule::get_singleton()->already_initialized) {
+		return;
+	}
 	FMODRuntime::get_singleton()->play_one_shot_id(get_guid(),position);
 }
 

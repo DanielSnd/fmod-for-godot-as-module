@@ -496,7 +496,7 @@ void FMODEditorInspectorProperty::gui_input(const Ref<InputEvent>& event)
 
 void FMODEditorInspectorProperty::update_property()
 {
-	Variant new_value = get_edited_object()->get(get_edited_property());
+	Variant new_value = get_edited_property_value();
 
 	if (new_value.get_type() == Variant::NIL)
 	{
@@ -515,6 +515,9 @@ void FMODEditorInspectorProperty::update_property()
 		}
 	}
 
+	if (current_value == new_value) {
+		return;
+	}
 	updating = true;
 
 	current_value = new_value;
@@ -555,15 +558,14 @@ void FMODEditorInspectorProperty::update_property()
 		property_control->set_icon(Ref<Texture2D>());
 	}
 
-	close_popup();
 	get_edited_object()->notify_property_list_changed();
+	close_popup();
 	updating = false;
 }
 
 void FMODEditorInspectorProperty::on_button_pressed()
 {
-	if (updating)
-	{
+	if (updating) {
 		return;
 	}
 	inspector_browser->set_min_size(
@@ -605,6 +607,8 @@ void FMODEditorInspectorProperty::open_popup()
 
 	inspector_browser->popup(
 			Rect2i(Vector2i(get_global_mouse_position().x - (inspector_browser->get_size().x), get_global_mouse_position().y - (100.0f * editor_scale)), Vector2(1, 1)));
+
+	inspector_browser->search_text->grab_focus();
 }
 
 void FMODEditorInspectorProperty::close_popup()

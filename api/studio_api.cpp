@@ -1069,7 +1069,10 @@ Ref<EventInstance> EventDescription::create_instance()
 {
 	Ref<EventInstance> ref = create_ref<EventInstance>();
 	FMOD::Studio::EventInstance* instance = nullptr;
-
+	if (event_description == nullptr) {
+		WARN_PRINT(vformat("[FMOD] Attempted to create instance on a null event description ",__FUNCTION__, __FILE__, __LINE__));
+		return ref;
+	}
 	if (ERROR_CHECK(event_description->createInstance(&instance)))
 	{
 		ref->set_instance(instance);

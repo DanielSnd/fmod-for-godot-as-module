@@ -31,6 +31,7 @@ class FMODRuntime : public Node
 		Ref<StudioApi::StudioSystem> get_studio_system(){return studio_system;}
 		void set_studio_system(Ref<StudioApi::StudioSystem> val){studio_system = val;}
 
+		bool already_setup_in_tree = false;
 		Node* debug_scene;
 		Node* get_debug_scene() {return debug_scene;}
 		void set_debug_scene(Node* val) { debug_scene = val; }
@@ -76,6 +77,9 @@ class FMODRuntime : public Node
         static FMODRuntime* singleton;
 	    static FMODRuntime* get_singleton();
 		bool has_initialized = false;
+		bool debug_print_event_calls = false;
+		bool get_debug_print_event_calls() const {return debug_print_event_calls;}
+		void set_debug_print_event_calls(bool val) {debug_print_event_calls = val;}
 		void setup_in_tree();
 	    FMODRuntime();
 	    ~FMODRuntime() override;

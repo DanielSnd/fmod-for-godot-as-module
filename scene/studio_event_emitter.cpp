@@ -291,6 +291,9 @@ bool StudioEventEmitterImpl<T>::_property_get_revert(const StringName& p_name, V
 template <typename T>
 void StudioEventEmitterImpl<T>::play_instance()
 {
+	if (!Engine::get_singleton()->is_editor_hint() && !FMODStudioModule::get_singleton()->already_initialized) {
+		return;
+	}
 	bool instance_is_valid = event_instance.is_valid();
 	if (instance_is_valid)
 	{
@@ -340,7 +343,11 @@ void StudioEventEmitterImpl<T>::play_instance()
 			}
 		}
 	}
-
+	if (FMODRuntime::get_singleton()->debug_print_event_calls) {
+		if (event_description.is_valid()) {
+			print_line("[FMOD] Play event called ",event_description->get_id());
+		}
+	}
 	event_instance->start();
 	has_triggered = true;
 }

@@ -14,6 +14,10 @@ void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_debug_scene"), &FMODRuntime::get_debug_scene);
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "debug_scene", PROPERTY_HINT_NODE_TYPE,"Node"), "set_debug_scene", "get_debug_scene");
 
+    ClassDB::bind_method(D_METHOD("set_debug_print_event_calls", "status"), &FMODRuntime::set_debug_print_event_calls);
+    ClassDB::bind_method(D_METHOD("get_debug_print_event_calls"), &FMODRuntime::get_debug_print_event_calls);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_print_event_calls"), "set_debug_print_event_calls", "get_debug_print_event_calls");
+
     ClassDB::bind_method(D_METHOD("path_to_guid","fmod_path"), &FMODRuntime::path_to_guid);
 
     ClassDB::bind_method(D_METHOD("get_event_description","event_asset"), &FMODRuntime::get_event_description);
@@ -119,6 +123,9 @@ void FMODRuntime::play_one_shot_attached_id(const String &guid, Node *node) {
     } else {
         WARN_PRINT("[FMOD] Trying to attach an instance to an invalid node. The node should inherit Node3D or Node2D.");
     }
+    if (debug_print_event_calls) {
+        print_line("[FMOD] Event called ",guid);
+    }
     instance->start();
     instance->release();
 }
@@ -141,6 +148,9 @@ void FMODRuntime::play_one_shot_id(const String &guid, const Variant &position =
         RuntimeUtils::to_3d_attributes(attributes, position);
     } else {
         RuntimeUtils::to_3d_attributes(attributes, Vector3(0, 0, 0));
+    }
+    if (debug_print_event_calls) {
+        print_line("[FMOD] Event called ",guid);
     }
     instance->set_3d_attributes(attributes);
     instance->start();
@@ -228,7 +238,6 @@ void FMODRuntime::do_process() {
 
 FMODRuntime* FMODRuntime::singleton = nullptr;
 
-bool already_setup_in_tree = false;
 void FMODRuntime::setup_in_tree() {
     if(!already_setup_in_tree) {
         SceneTree::get_singleton()->get_root()->add_child(this);
