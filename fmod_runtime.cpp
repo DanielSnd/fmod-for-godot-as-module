@@ -4,16 +4,8 @@
 
 #include "fmod_runtime.h"
 
+FMODRuntime* FMODRuntime::singleton = nullptr;
 void FMODRuntime::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("set_studio_system", "studio_system"), &FMODRuntime::set_studio_system);
-    ClassDB::bind_method(D_METHOD("get_studio_system"), &FMODRuntime::get_studio_system);
-    ClassDB::bind_method(D_METHOD("setup_in_tree"), &FMODRuntime::setup_in_tree);
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "studio_system"), "set_studio_system", "get_studio_system");
-
-    ClassDB::bind_method(D_METHOD("set_debug_scene", "debug_scene"), &FMODRuntime::set_debug_scene);
-    ClassDB::bind_method(D_METHOD("get_debug_scene"), &FMODRuntime::get_debug_scene);
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "debug_scene", PROPERTY_HINT_NODE_TYPE,"Node"), "set_debug_scene", "get_debug_scene");
-
     ClassDB::bind_method(D_METHOD("set_debug_print_event_calls", "status"), &FMODRuntime::set_debug_print_event_calls);
     ClassDB::bind_method(D_METHOD("get_debug_print_event_calls"), &FMODRuntime::get_debug_print_event_calls);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_print_event_calls"), "set_debug_print_event_calls", "get_debug_print_event_calls");
@@ -34,9 +26,13 @@ void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("play_one_shot_id","event_guid","position"), &FMODRuntime::play_one_shot_id,DEFVAL(Variant{}));
     ClassDB::bind_method(D_METHOD("attach_instance_to_node","event_instance","node","physicsbody"), &FMODRuntime::attach_instance_to_node);
     ClassDB::bind_method(D_METHOD("detach_instance_from_node","event_instance"), &FMODRuntime::detach_instance_from_node);
+    ClassDB::bind_method(D_METHOD("setup_in_tree"), &FMODRuntime::setup_in_tree);
 }
 
 void FMODRuntime::_notification(int p_what) {
+    if (p_what == 0 && !Engine::get_singleton()->is_editor_hint()) {
+        call_deferred("setup_in_tree");
+    }
     switch (p_what) {
         case NOTIFICATION_ENTER_TREE: {
             do_enter_tree();
@@ -73,7 +69,7 @@ void FMODRuntime::do_enter_tree() {
         const String settings_path = get_platform_setting_path(PlatformSettingsPath::FMOD_SETTINGS_PATH);
         const bool enable_debug_performance =
                 static_cast<bool>(get_platform_project_setting(settings_path + String("debug_performance")));
-        if (OS::get_singleton()->has_feature("editor") && enable_debug_performance) {
+        if (!OS::get_singleton()->has_feature("editor") && enable_debug_performance) {
             debug_scene = memnew(FMODDebugMonitor);
             call_deferred("add_child",debug_scene);
         }
@@ -235,11 +231,8 @@ void FMODRuntime::do_process() {
     studio_system->update();
 }
 
-
-FMODRuntime* FMODRuntime::singleton = nullptr;
-
 void FMODRuntime::setup_in_tree() {
-    if(!already_setup_in_tree) {
+    if(!already_setup_in_tree && SceneTree::get_singleton() != nullptr) {
         SceneTree::get_singleton()->get_root()->add_child(this);
         already_setup_in_tree=true;
     }
@@ -247,9 +240,15 @@ void FMODRuntime::setup_in_tree() {
 
 FMODRuntime::FMODRuntime() {
     singleton = this;
+    if (!Engine::get_singleton()->is_editor_hint()) {
+     //   call_deferred("setup_in_tree");
+    }
 }
 
 FMODRuntime::~FMODRuntime() {
+    if(singleton != nullptr && singleton == this) {
+        singleton = nullptr;
+    }
 }
 
 FMODRuntime * FMODRuntime::get_singleton() {

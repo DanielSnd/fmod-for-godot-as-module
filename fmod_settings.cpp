@@ -54,7 +54,7 @@ void FMODSettings::initialize()
 		}
 		return;
 	}
-	print_line("[FMOD] Initializing Fmod Settings");
+	//print_line("[FMOD] Initializing Fmod Settings");
 	add_fmod_settings();
 
 	if (Engine::get_singleton()->is_editor_hint())
@@ -103,7 +103,6 @@ void FMODSettings::add_fmod_settings()
 	add_setting(settings_path + String("distance_scale_2d"), 1.0f, Variant::Type::FLOAT);
 	add_setting(settings_path + String("init_with_3d_righthanded"), true, Variant::Type::BOOL);
 }
-
 
 void FMODSettings::add_setting(const String& p_name, const Variant& p_default_value, Variant::Type p_type,
 PropertyHint p_hint, const String& p_hint_string, int p_usage,bool restart_if_changed) {

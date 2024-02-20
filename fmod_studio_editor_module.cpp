@@ -544,8 +544,8 @@ void FMODStudioEditorModule::reload_cache_file()
 
 Ref<ProjectCache> FMODStudioEditorModule::get_project_cache()
 {
-	Ref<FileAccess> file_access = FileAccess::create(FileAccess::ACCESS_RESOURCES);
-	if (!file_access->file_exists("res://FMOD/cache/fmod_project_cache.tres"))
+	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
+	if (!da->file_exists("res://FMOD/cache/fmod_project_cache.tres"))
 	{
 		Dictionary project_info = get_project_info_from_banks();
 		project_cache = generate_cache(project_info);

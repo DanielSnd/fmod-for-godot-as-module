@@ -1,6 +1,5 @@
 #include "fmod_studio_module.h"
 
-#include "fmod_runtime.h"
 #include "core/os/os.h"
 #include "core/variant/typed_array.h"
 #include "fmod_settings.h"
@@ -9,13 +8,11 @@
 using namespace godot;
 
 FMODStudioModule* FMODStudioModule::singleton = nullptr;
-FMODRuntime* FMODStudioModule::fmod_runtime = nullptr;
 
 void FMODStudioModule::_bind_methods()
 {
 	ClassDB::bind_method(D_METHOD("init"), &FMODStudioModule::init);
 	ClassDB::bind_method(D_METHOD("shutdown"), &FMODStudioModule::shutdown);
-	ClassDB::bind_method(D_METHOD("attempt_autoload_runtime"), &FMODStudioModule::attempt_autoload_runtime);
 	ClassDB::bind_method(D_METHOD("get_studio_system"), &FMODStudioModule::get_studio_system_ref);
 	ADD_SIGNAL(MethodInfo("fmod_initialized"));
 	ADD_SIGNAL(MethodInfo("fmod_shutdown"));
@@ -331,7 +328,6 @@ FMODStudioModule::FMODStudioModule()
 	fmod_shutdown = StaticCString::create("fmod_shutdown");
 	ERR_FAIL_COND(singleton != nullptr);
 	singleton = this;
-	call_deferred("attempt_autoload_runtime");
 #if defined(_DEBUG)
 	initialize_debug_functions();
 #endif
@@ -380,12 +376,9 @@ bool FMODStudioModule::init()
 	for (int64_t i = 0; i < banks_to_load_at_startup.size(); i++)
 	{
 		String bank_path = banks_to_load_at_startup[i];
-		Ref<FileAccess> fa = FileAccess::create(FileAccess::ACCESS_RESOURCES);
-		if (fa->file_exists(bank_path)) {
-			studio_system_ref->load_bank_file(bank_path.utf8().get_data(), FMOD_STUDIO_LOAD_BANK_NORMAL, false);
-		} else {
-			ERR_PRINT(vformat("[FMOD] Failed to open bank at 'load at startup' path %s",bank_path));
-		}
+		Ref<FileAccess> fa = FileAccess::open(bank_path, FileAccess::READ);
+		ERR_FAIL_COND_V_MSG(fa.is_null(), result, "[FMOD] Failed to open bank at 'load at startup' path '" + bank_path + "'.");
+		studio_system_ref->load_bank_file(bank_path.utf8().get_data(), FMOD_STUDIO_LOAD_BANK_NORMAL, false);
 	}
 
 	return result;
@@ -400,20 +393,6 @@ void FMODStudioModule::shutdown()
 		already_initialized=false;
 	}
 }
-
-void FMODStudioModule::attempt_autoload_runtime() {
-	if (is_fmod_enabled() && !Engine::get_singleton()->is_editor_hint()) {
-		fmod_runtime->setup_in_tree();
-		//SceneTree::get_singleton()->connect(SNAME("process_frame"),callable_mp(this,&FMODStudioModule::execute_autoload_runtime),CONNECT_ONE_SHOT);
-	}
-}
-
-void FMODStudioModule::execute_autoload_runtime() {
-	if (is_fmod_enabled() && !Engine::get_singleton()->is_editor_hint()) {
-		fmod_runtime->setup_in_tree();
-	}
-}
-
 
 Ref<StudioApi::StudioSystem> FMODStudioModule::get_studio_system_ref()
 {

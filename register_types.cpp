@@ -1,5 +1,7 @@
 #include "register_types.h"
 
+#include "resource_loader_fmodbank.h"
+#include "resource_fmodbank.h"
 #include "fmod_runtime.h"
 #include "fmod_settings.h"
 #include "fmod_studio_editor_module.h"
@@ -18,11 +20,17 @@
 #include "utils/runtime_utils.h"
 
 static FMODStudioModule* fmod_module;
+static FMODRuntime* fmod_runtime;
 static FMODStudioEditorModule* fmod_editor_module;
 static FMODSettings* fmod_settings;
+static Ref<ResourceFormatLoaderFmodBank> bank_loader;
 
 void initialize_fmodgodot_module(ModuleInitializationLevel p_level)
 {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
+		bank_loader.instantiate();
+		ResourceLoader::add_resource_format_loader(bank_loader,true);
+	}
 #ifdef TOOLS_ENABLED
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR)
 	{
@@ -66,6 +74,8 @@ void initialize_fmodgodot_module(ModuleInitializationLevel p_level)
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)
 	{
+		GDREGISTER_CLASS(FMODBank);
+
 		if (fmod_settings == nullptr) {
 			ClassDB::register_class<FMODSettings>();
 			fmod_settings = memnew(FMODSettings);
@@ -75,11 +85,8 @@ void initialize_fmodgodot_module(ModuleInitializationLevel p_level)
 		ClassDB::register_class<FMODStudioModule>();
 		fmod_module = memnew(FMODStudioModule);
 		Engine::get_singleton()->add_singleton(Engine::Singleton("FMODStudioModule", FMODStudioModule::get_singleton()));
-
-		if (fmod_module->fmod_runtime == nullptr) {
-			fmod_module->fmod_runtime = memnew(FMODRuntime);
-			Engine::get_singleton()->add_singleton(Engine::Singleton("FMODRuntime", FMODRuntime::get_singleton()));
-		}
+		fmod_runtime = memnew(FMODRuntime);
+		Engine::get_singleton()->add_singleton(Engine::Singleton("FMODRuntime", FMODRuntime::get_singleton()));
 		// Studio API
 		ClassDB::register_class<StudioApi::StudioSystem>();
 		ClassDB::register_class<StudioApi::EventDescription>();
@@ -135,12 +142,15 @@ void uninitialize_fmodgodot_module(ModuleInitializationLevel p_level)
 	}
 #endif
 
+	if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
+		ResourceLoader::remove_resource_format_loader(bank_loader);
+		bank_loader.unref();
+	}
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		Engine::get_singleton()->remove_singleton("FMODStudioModule");
 		Engine::get_singleton()->remove_singleton("FMODRuntime");
-		if(fmod_module->fmod_runtime != nullptr) {
-			memdelete(fmod_module->fmod_runtime);
-			fmod_module->fmod_runtime = nullptr;
+		if(fmod_runtime != nullptr) {
+			memdelete(fmod_runtime);
 		}
 		memdelete(fmod_module);
 		fmod_module = nullptr;

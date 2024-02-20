@@ -18,7 +18,9 @@ if ARGUMENTS.get('fmodgodot', 'yes') == 'yes':
         "scene/studio_listener.cpp",
         "scene/studio_parameter_trigger.cpp",
         "api/studio_api.cpp",
-        "fmod_runtime.cpp"
+        "fmod_runtime.cpp",
+        "resource_loader_fmodbank.cpp",
+        "resource_fmodbank.cpp"
     ]
     if env["target"] == "template_debug":
         env.Append(CPPDEFINES=["FMOD_DEBUG"])

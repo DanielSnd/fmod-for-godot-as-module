@@ -25,6 +25,10 @@ def configure(env):
         env.Append(LIBPATH=["#../modules/fmodgodot/lib/core/lib/", "#../modules/fmodgodot/lib/studio/lib/"])
         env.Append(LIBS=["fmod", "fmodstudio"])
         env.Append(CPPDEFINES=["FMOD_OSX"])
+    elif env["platform"] == "android":
+        env.Append(LIBPATH=["#../modules/fmodgodot/lib/core/lib/arm64-v8a/", "#../modules/fmodgodot/lib/studio/lib/arm64-v8a/"])
+        env.Append(LIBS=["libfmod", "libfmodstudio"])
+        env.Append(CPPDEFINES=["FMOD_ANDROID"])
     elif env["platform"] == "linuxbsd":
         env.Append(
             LIBPATH=["lib/core/lib/x86_64/", "lib/studio/lib/x86_64/"])

@@ -13,8 +13,6 @@
 #include <AudioToolbox/AudioToolbox.h>
 #endif
 
-class FMODRuntime;
-
 struct AttachedInstance {
 	Ref<StudioApi::EventInstance> instance;
 	Node* node;
@@ -42,7 +40,6 @@ private:
 public:
 	StringName fmod_initialized;
 	StringName fmod_shutdown;
-	static FMODRuntime* fmod_runtime;
 	std::vector<AttachedInstance> attached_instances;
 	static FMODStudioModule* get_singleton();
 	FMODStudioModule();
