@@ -347,7 +347,7 @@ void EventAsset::play_one_shot(const Variant &position) {
 	FMODRuntime::get_singleton()->play_one_shot_id(get_guid(),position);
 }
 
-void EventAsset::play_one_shot_volume(const Variant &position,float volume) {
+void EventAsset::play_one_shot_volume(float volume,const Variant &position) {
 	if (!Engine::get_singleton()->is_editor_hint() && !FMODStudioModule::get_singleton()->already_initialized) {
 		return;
 	}

@@ -66,7 +66,7 @@ public:
 
 	void play_one_shot(const Variant &position);
 
-	void play_one_shot_volume(const Variant &position, float volume);
+	void play_one_shot_volume(float volume, const Variant &position);
 
 	void set_3d(bool is_3d);
 	bool get_3d() const;
