@@ -24,6 +24,11 @@ void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("play_one_shot","event_asset","position"), &FMODRuntime::play_one_shot,DEFVAL(Variant{}));
     ClassDB::bind_method(D_METHOD("play_one_shot_path","event_path","position"), &FMODRuntime::play_one_shot_path,DEFVAL(Variant{}));
     ClassDB::bind_method(D_METHOD("play_one_shot_id","event_guid","position"), &FMODRuntime::play_one_shot_id,DEFVAL(Variant{}));
+
+    ClassDB::bind_method(D_METHOD("play_one_shot_volume","event_asset","volume","position"), &FMODRuntime::play_one_shot_volume,DEFVAL(Variant{}));
+    ClassDB::bind_method(D_METHOD("play_one_shot_path_volume","event_path","volume","position"), &FMODRuntime::play_one_shot_path_volume,DEFVAL(Variant{}));
+    ClassDB::bind_method(D_METHOD("play_one_shot_id_volume","event_guid","volume","position"), &FMODRuntime::play_one_shot_id_volume,DEFVAL(Variant{}));
+
     ClassDB::bind_method(D_METHOD("attach_instance_to_node","event_instance","node","physicsbody"), &FMODRuntime::attach_instance_to_node);
     ClassDB::bind_method(D_METHOD("detach_instance_from_node","event_instance"), &FMODRuntime::detach_instance_from_node);
     ClassDB::bind_method(D_METHOD("setup_in_tree"), &FMODRuntime::setup_in_tree);
@@ -134,6 +139,14 @@ void FMODRuntime::play_one_shot_path(const String &event_path, const Variant &po
     play_one_shot_id(path_to_guid(event_path), position);
 }
 
+void FMODRuntime::play_one_shot_volume(const Ref<EventAsset> &event_asset, const float volume, const Variant &position = Variant()) {
+    play_one_shot_id_volume(event_asset->get_guid(),volume, position);
+}
+
+void FMODRuntime::play_one_shot_path_volume(const String &event_path, const float volume, const Variant &position = Variant()) {
+    play_one_shot_id_volume(path_to_guid(event_path),volume, position);
+}
+
 void FMODRuntime::play_one_shot_id(const String &guid, const Variant &position = Variant()) {
     Ref<StudioApi::EventInstance> instance = create_instance_id(guid);
     const Ref<FmodTypes::FMOD_3D_ATTRIBUTES> attributes = memnew(FmodTypes::FMOD_3D_ATTRIBUTES);
@@ -149,6 +162,27 @@ void FMODRuntime::play_one_shot_id(const String &guid, const Variant &position =
         print_line("[FMOD] Event called ",guid);
     }
     instance->set_3d_attributes(attributes);
+    instance->start();
+    instance->release();
+}
+
+
+void FMODRuntime::play_one_shot_id_volume(const String &guid, const float volume, const Variant &position = Variant()) {
+    Ref<StudioApi::EventInstance> instance = create_instance_id(guid);
+    const Ref<FmodTypes::FMOD_3D_ATTRIBUTES> attributes = memnew(FmodTypes::FMOD_3D_ATTRIBUTES);
+    Variant::Type type = position.get_type();
+    if (type == Variant::Type::OBJECT) {
+        RuntimeUtils::to_3d_attributes_node(attributes, Object::cast_to<Node>(position), nullptr);
+    } else if (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D) {
+        RuntimeUtils::to_3d_attributes(attributes, position);
+    } else {
+        RuntimeUtils::to_3d_attributes(attributes, Vector3(0, 0, 0));
+    }
+    if (debug_print_event_calls) {
+        print_line("[FMOD] Event called ",guid);
+    }
+    instance->set_3d_attributes(attributes);
+    instance->set_volume(volume);
     instance->start();
     instance->release();
 }

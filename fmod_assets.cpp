@@ -127,6 +127,7 @@ void EventAsset::_bind_methods()
 	ClassDB::bind_method(D_METHOD("set_parameters", "parameters"), &EventAsset::set_parameters);
 	ClassDB::bind_method(D_METHOD("get_parameters"), &EventAsset::get_parameters);
 	ClassDB::bind_method(D_METHOD("play_one_shot","position"), &EventAsset::play_one_shot,DEFVAL(Variant{}));
+	ClassDB::bind_method(D_METHOD("play_one_shot_volume","volume","position"), &EventAsset::play_one_shot_volume,DEFVAL(Variant{}));
 	ClassDB::bind_method(D_METHOD("play_one_shot_attached","node"), &EventAsset::play_one_shot_attached);
 	ClassDB::bind_method(D_METHOD("set_event_ref_from_description", "description"),
 			&EventAsset::set_event_ref_from_description_ref);
@@ -344,6 +345,13 @@ void EventAsset::play_one_shot(const Variant &position) {
 		return;
 	}
 	FMODRuntime::get_singleton()->play_one_shot_id(get_guid(),position);
+}
+
+void EventAsset::play_one_shot_volume(const Variant &position,float volume) {
+	if (!Engine::get_singleton()->is_editor_hint() && !FMODStudioModule::get_singleton()->already_initialized) {
+		return;
+	}
+	FMODRuntime::get_singleton()->play_one_shot_id_volume(get_guid(),volume,position);
 }
 
 void EventAsset::set_3d(bool _is_3d)

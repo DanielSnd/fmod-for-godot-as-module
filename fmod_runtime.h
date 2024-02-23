@@ -64,9 +64,15 @@ class FMODRuntime : public Node
 
         void play_one_shot_path(const String &event_path, const Variant &position);
 
-        void play_one_shot_id(const String &guid, const Variant &position);
+	void play_one_shot_volume(const Ref<EventAsset> &event_asset, float volume, const Variant &position);
 
-        void attach_instance_to_node(const Ref<StudioApi::EventInstance> &instance, Node *node, Object *physicsbody);
+	void play_one_shot_path_volume(const String &event_path, float volume, const Variant &position);
+
+	void play_one_shot_id(const String &guid, const Variant &position);
+
+	void play_one_shot_id_volume(const String &guid, float volume, const Variant &position);
+
+	void attach_instance_to_node(const Ref<StudioApi::EventInstance> &instance, Node *node, Object *physicsbody);
 
         void detach_instance_from_node(const Ref<StudioApi::EventInstance> &instance);
 
