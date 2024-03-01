@@ -4,6 +4,9 @@
 
 #include "fmod_runtime.h"
 
+#include "scene/scene_string_names.h"
+#include "scene/gui/control.h"
+
 FMODRuntime* FMODRuntime::singleton = nullptr;
 void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_debug_print_event_calls", "status"), &FMODRuntime::set_debug_print_event_calls);
@@ -11,6 +14,10 @@ void FMODRuntime::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_print_event_calls"), "set_debug_print_event_calls", "get_debug_print_event_calls");
 
     ClassDB::bind_method(D_METHOD("path_to_guid","fmod_path"), &FMODRuntime::path_to_guid);
+
+    ClassDB::bind_method(D_METHOD("set_click_and_hover_assets","click_eventasset","hover_eventasset"), &FMODRuntime::set_click_and_hover_assets);
+    ClassDB::bind_method(D_METHOD("setup_button_sfx_callback","button","callback"), &FMODRuntime::setup_button_sfx_callback);
+    ClassDB::bind_method(D_METHOD("setup_button_sfx","button"), &FMODRuntime::setup_button_sfx);
 
     ClassDB::bind_method(D_METHOD("get_event_description","event_asset"), &FMODRuntime::get_event_description);
     ClassDB::bind_method(D_METHOD("get_event_description_path","event_path"), &FMODRuntime::get_event_description_path);
@@ -80,6 +87,67 @@ void FMODRuntime::do_enter_tree() {
         }
     }
 }
+
+void FMODRuntime::make_button_grab_focus(Control* button) { if(button != nullptr) button->grab_focus(); }
+
+void FMODRuntime::set_click_and_hover_assets(const Ref<EventAsset> &_click, const Ref<EventAsset> &_hover) {
+    has_sfx_click = _click.is_valid();
+    has_sfx_hover = _hover.is_valid();
+    if(has_sfx_click)
+        sfx_click_asset = _click->get_guid();
+    if(has_sfx_hover)
+        sfx_hover_asset = _hover->get_guid();
+}
+
+void FMODRuntime::play_click_sfx() {
+    if(!has_sfx_click) return;
+    auto last_ticks_msec = OS::get_singleton()->get_ticks_msec();
+    if (last_time_played_click + 50 < last_ticks_msec) {
+        last_time_played_click = last_ticks_msec;
+        play_one_shot_id(sfx_click_asset,Variant{});
+    }
+}
+
+void FMODRuntime::play_hover_sfx() {
+    if(!has_sfx_hover) return;
+    auto last_ticks_msec = OS::get_singleton()->get_ticks_msec();
+    if (last_time_played_hover + 50 < last_ticks_msec) {
+        last_time_played_hover = last_ticks_msec;
+        play_one_shot_id(sfx_hover_asset,Variant{});
+    }
+}
+
+void FMODRuntime::setup_button_sfx_callback(Control* _button, const Callable &p_callable) {
+    if(_button == nullptr) return;
+    _button->connect(SceneStringNames::get_singleton()->mouse_entered, callable_mp(this, &FMODRuntime::make_button_grab_focus).bind(_button));
+    _button->connect(SceneStringNames::get_singleton()->focus_entered, callable_mp(this, &FMODRuntime::play_hover_sfx));
+    if (_button->has_signal("pressed")) {
+        _button->connect("pressed",callable_mp(this,&FMODRuntime::play_click_sfx));
+        _button->connect("pressed",p_callable);
+    }
+}
+
+void FMODRuntime::setup_button_sfx(Control* _button) {
+    if(_button == nullptr) return;
+    _button->connect(SceneStringNames::get_singleton()->mouse_entered, callable_mp(this, &FMODRuntime::make_button_grab_focus).bind(_button));
+    _button->connect(SceneStringNames::get_singleton()->focus_entered, callable_mp(this, &FMODRuntime::play_hover_sfx));
+    if (_button->has_signal("pressed")) {
+        _button->connect("pressed",callable_mp(this,&FMODRuntime::play_click_sfx));
+    }
+}
+
+// 	func setup_click_and_hover_sfx_c(button:Control,callable : Callable,is_return:bool = false):
+// 	button.mouse_entered.connect(make_button_grab_focus.bind(button))
+// 	button.focus_entered.connect(play_hover_sfx)
+// 	if button.has_signal("pressed"):
+// 		button.pressed.connect(play_click_sfx)
+// 		button.pressed.connect(callable)
+//
+// func setup_click_and_hover_sfx(button:Control,is_return:bool = false):
+// 	button.mouse_entered.connect(make_button_grab_focus.bind(button))
+// 	button.focus_entered.connect(play_hover_sfx)
+// 	if button.has_signal("pressed"):
+// 		button.pressed.connect(play_click_sfx)
 
 String FMODRuntime::path_to_guid(const String &path) {
     return studio_system->lookup_id(path);
@@ -267,6 +335,9 @@ void FMODRuntime::do_process() {
 
 void FMODRuntime::setup_in_tree() {
     if(!already_setup_in_tree && SceneTree::get_singleton() != nullptr) {
+        if (!is_fmod_enabled()) {
+            return;
+        }
         SceneTree::get_singleton()->get_root()->add_child(this);
         already_setup_in_tree=true;
     }
@@ -274,9 +345,6 @@ void FMODRuntime::setup_in_tree() {
 
 FMODRuntime::FMODRuntime() {
     singleton = this;
-    if (!Engine::get_singleton()->is_editor_hint()) {
-     //   call_deferred("setup_in_tree");
-    }
 }
 
 FMODRuntime::~FMODRuntime() {

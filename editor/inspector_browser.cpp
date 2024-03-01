@@ -461,14 +461,14 @@ void FMODEditorInspectorProperty::init(FMODStudioEditorModule::FMODAssetType ass
 			break;
 	}
 
-	tree->connect("item_selected", Callable(this, "on_item_selected"));
-	property_control->connect("pressed", Callable(this, "on_button_pressed"));
+	tree->connect("item_selected", callable_mp(this,&FMODEditorInspectorProperty::on_item_selected));
+	property_control->connect("pressed", callable_mp(this,&FMODEditorInspectorProperty::on_button_pressed));
 
 	event_popup = memnew(PopupMenu);
 	event_popup->add_item("Copy Path", EventPopupItems::EVENT_POPUP_COPY_PATH);
 	event_popup->add_item("Copy GUID", EventPopupItems::EVENT_POPUP_COPY_GUID);
 	event_popup->add_item("Open in Studio", EventPopupItems::EVENT_POPUP_OPEN_IN_STUDIO);
-	event_popup->connect("id_pressed", Callable(this, "on_event_popup_id_pressed"));
+	event_popup->connect("id_pressed", callable_mp(this,&FMODEditorInspectorProperty::on_event_popup_id_pressed));
 	add_child(event_popup);
 	event_popup->set_owner(this);
 }
@@ -598,6 +598,7 @@ void FMODEditorInspectorProperty::on_item_selected()
 
 		current_value = selected_item->get_meta("Resource");
 		emit_changed(get_edited_property(), current_value);
+		notify_property_list_changed();
 	}
 }
 
@@ -628,6 +629,7 @@ void FMODEditorInspectorProperty::close_popup()
 void FMODEditorInspectorProperty::reset()
 {
 	emit_changed(get_edited_property(), current_value);
+	notify_property_list_changed();
 }
 
 void FMODEditorInspectorProperty::on_event_popup_id_pressed(int32_t id)
