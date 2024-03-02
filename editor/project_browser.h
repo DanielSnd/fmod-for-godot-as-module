@@ -14,6 +14,7 @@
 #include "core/input/input.h"
 #include "core/input/input_enums.h"
 #include "core/input/input_event.h"
+#include "scene/gui/margin_container.h"
 
 using namespace godot;
 

@@ -6,8 +6,12 @@
 #include <fmod_studio_common.h>
 
 #include "core/config/project_settings.h"
-#include "scene/2d/physics_body_2d.h"
-#include "scene/3d/physics_body_3d.h"
+#include "scene/2d/physics/character_body_2d.h"
+#include "scene/2d/physics/physics_body_2d.h"
+#include "scene/2d/physics/rigid_body_2d.h"
+#include "scene/3d/physics/character_body_3d.h"
+#include "scene/3d/physics/physics_body_3d.h"
+#include "scene/3d/physics/rigid_body_3d.h"
 
 using namespace godot;
 
