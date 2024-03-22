@@ -88,7 +88,7 @@ void FMODRuntime::do_enter_tree() {
     }
 }
 
-void FMODRuntime::make_button_grab_focus(Control* button) { if(button != nullptr) button->grab_focus(); }
+void FMODRuntime::make_button_grab_focus(Control* button) { if(button != nullptr && button->get_focus_mode() != Control::FOCUS_NONE) button->grab_focus(); }
 
 void FMODRuntime::set_click_and_hover_assets(const Ref<EventAsset> &_click, const Ref<EventAsset> &_hover) {
     has_sfx_click = _click.is_valid();
