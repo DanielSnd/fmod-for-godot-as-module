@@ -30,9 +30,9 @@ def configure(env):
         env.Append(LIBS=["libfmod", "libfmodstudio"])
         env.Append(CPPDEFINES=["FMOD_ANDROID"])
     elif env["platform"] == "linuxbsd":
-        env.Append(
-            LIBPATH=["lib/core/lib/x86_64/", "lib/studio/lib/x86_64/"])
-        env.Append(LIBS=["lib" + CORE_LIBRARY_NAME, "lib" + STUDIO_LIBRARY_NAME])
+        env.Append(LIBPATH=["#../modules/fmodgodot/lib/core/lib/x86_64/"])
+        env.Append(LIBPATH=["#../modules/fmodgodot/lib/studio/lib/x86_64/"])
+        env.Append(LIBS=["libfmod","libfmodstudio"])
         env.Append(RPATH=["\$$ORIGIN:."])
         env.Append(CPPDEFINES=["FMOD_LINUX"])
     elif env["platform"] == "web":

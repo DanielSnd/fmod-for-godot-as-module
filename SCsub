@@ -33,4 +33,4 @@ if ARGUMENTS.get('fmodgodot', 'yes') == 'yes':
 
     module_env = env.Clone()
     module_env.add_source_files(module_env.modules_sources, sources)
-    module_env.Append(CPPPATH=[".", "editor", "api","misc","scene","utils", "lib/core/inc", "lib/studio/inc", "lib/core/lib/x64", "lib/studio/lib/x64"])
+    module_env.Append(CPPPATH=[".", "editor", "api","misc","scene","utils", "lib/core/inc", "lib/studio/inc", "lib/core/lib/x64", "lib/studio/lib/x64", "lib/core/lib/x86_64", "lib/studio/lib/x86_64"])
