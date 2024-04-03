@@ -338,7 +338,7 @@ void FMODRuntime::setup_in_tree() {
         if (!is_fmod_enabled()) {
             return;
         }
-        SceneTree::get_singleton()->get_root()->add_child(this);
+        SceneTree::get_singleton()->get_root()->call_deferred("add_child",this);
         already_setup_in_tree=true;
     }
 }
