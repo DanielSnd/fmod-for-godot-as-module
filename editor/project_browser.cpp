@@ -477,7 +477,7 @@ void FMODProjectBrowserWindow::on_generate_guids_button_pressed()
 	}
 
 	const String export_guids_js_path = "res://FMOD/tools/export_guids.js";
-	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
+	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_MAX);
 	if (!da->file_exists(export_guids_js_path)) {
 		create_export_guids_js_file();
 	}
@@ -502,6 +502,20 @@ void FMODProjectBrowserWindow::on_generate_guids_button_pressed()
 		ResourceLoader::load(guids_path, "",
 				ResourceFormatLoader::CACHE_MODE_REPLACE);
 		print_line(String(vformat("[FMOD] GUIDs generated in %s",guids_path)));
+	}
+}
+
+void FMODProjectBrowserWindow::on_export_paths_button_pressed() {
+	Ref<ProjectCache> _cache = FMODStudioEditorModule::get_singleton()->get_project_cache();
+	if (_cache.is_valid()) {
+		auto open_file_access = FileAccess::open("res://fmod_paths.txt",FileAccess::WRITE);
+		Array items = _cache->get_event_tree();
+		const int64_t item_count = items.size();
+		for (int64_t i = 0; i < item_count; i++) {
+			const Dictionary& item = items[i];
+			open_file_access->store_line(item["fmod_path"]);
+		}
+		open_file_access->close();
 	}
 }
 
@@ -868,15 +882,22 @@ void FMODProjectBrowserWindow::initialize()
 
 	refresh_button = memnew(Button);
 	refresh_button->set_text("Refresh Project");
-	refresh_button->connect("pressed", Callable(this, "on_refresh_button_pressed"));
+	refresh_button->connect("pressed", callable_mp(this, &FMODProjectBrowserWindow::on_refresh_button_pressed));
+
 	generate_guids_button = memnew(Button);
 	generate_guids_button->set_text("Generate GUIDs");
-	generate_guids_button->connect("pressed", Callable(this, "on_generate_guids_button_pressed"));
+	generate_guids_button->connect("pressed", callable_mp(this, &FMODProjectBrowserWindow::on_generate_guids_button_pressed));
+
+	export_paths_button = memnew(Button);
+	export_paths_button->set_text("Export Paths");
+	export_paths_button->connect("pressed", callable_mp(this, &FMODProjectBrowserWindow::on_export_paths_button_pressed));
 
 	button_container->add_child(refresh_button);
 	button_container->add_child(generate_guids_button);
+	button_container->add_child(export_paths_button);
 	refresh_button->set_owner(button_container);
 	generate_guids_button->set_owner(button_container);
+	export_paths_button->set_owner(button_container);
 
 	links_margin_container = memnew(MarginContainer);
 	links_margin_container->add_theme_constant_override("margin_right", 10);

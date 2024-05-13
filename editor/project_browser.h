@@ -134,6 +134,7 @@ private:
 	HBoxContainer* button_container = nullptr;
 	Button* refresh_button = nullptr;
 	Button* generate_guids_button = nullptr;
+	Button* export_paths_button = nullptr;
 	MarginContainer* links_margin_container = nullptr;
 	HBoxContainer* links_hbox_container = nullptr;
 	LinkButton* link_github = nullptr;
@@ -178,6 +179,7 @@ private:
 	void on_cell_selected();
 	void on_refresh_button_pressed();
 	void on_generate_guids_button_pressed();
+	void on_export_paths_button_pressed();
 
 	static void create_export_guids_js_file();
 
