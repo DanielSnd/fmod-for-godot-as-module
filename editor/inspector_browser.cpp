@@ -389,6 +389,11 @@ void FMODEditorInspector::initialize()
 	tree->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 
 	root_vbox->add_child(tree);
+
+	clear_button = memnew(Button);
+	clear_button->set_name("Revert");
+	clear_button->set_text("Revert");
+	root_vbox->add_child(clear_button);
 }
 
 void FMODEditorInspector::set_editor_scale(float _editor_scale)
@@ -426,12 +431,15 @@ void FMODEditorInspectorProperty::init(FMODStudioEditorModule::FMODAssetType ass
 	inspector_browser = memnew(FMODEditorInspector);
 	inspector_browser->set_editor_scale(editor_scale);
 	inspector_browser->initialize();
+	if (inspector_browser->clear_button != nullptr) {
+		inspector_browser->clear_button->connect("pressed",callable_mp(this, &FMODEditorInspectorProperty::on_revert_property));
+	}
 
 	add_child(property_control);
 	property_control->set_clip_text(true);
 
-	inspector_browser->connect("close_requested", Callable(this, "reset"));
-	inspector_browser->connect("confirmed", Callable(this, "reset"));
+	inspector_browser->connect("close_requested", callable_mp(this, &FMODEditorInspectorProperty::reset));
+	inspector_browser->connect("confirmed", callable_mp(this, &FMODEditorInspectorProperty::reset));
 	FMODEditorInspectorTree* tree = inspector_browser->tree;
 	tree->initialize(type);
 
@@ -558,7 +566,6 @@ void FMODEditorInspectorProperty::update_property()
 		property_control->set_icon(Ref<Texture2D>());
 	}
 
-	get_edited_object()->notify_property_list_changed();
 	close_popup();
 	updating = false;
 }
@@ -573,6 +580,14 @@ void FMODEditorInspectorProperty::on_button_pressed()
 	open_popup();
 }
 
+void FMODEditorInspectorProperty::on_revert_property() {
+	bool is_valid_revert = false;
+	Variant revert_value = EditorPropertyRevert::get_property_revert_value(get_edited_object(), get_edited_property(), &is_valid_revert);
+	ERR_FAIL_COND(!is_valid_revert);
+	emit_changed(_get_revert_property(), revert_value);
+	update_property();
+	get_edited_object()->notify_property_list_changed();
+}
 void FMODEditorInspectorProperty::on_item_selected()
 {
 	FMODEditorInspectorTree* tree = inspector_browser->tree;
@@ -596,15 +611,17 @@ void FMODEditorInspectorProperty::on_item_selected()
 			return;
 		}
 
-		current_value = selected_item->get_meta("Resource");
-		emit_changed(get_edited_property(), current_value);
-		notify_property_list_changed();
+
+		emit_changed(get_edited_property(), selected_item->get_meta("Resource"));
+		update_property();
+		//get_edited_object()->notify_property_list_changed();
 	}
 }
 
 void FMODEditorInspectorProperty::open_popup()
 {
-	add_child(inspector_browser);
+	if (inspector_browser->get_parent() == nullptr)
+		add_child(inspector_browser);
 
 	inspector_browser->popup(
 			Rect2i(Vector2i(get_global_mouse_position().x - (inspector_browser->get_size().x), get_global_mouse_position().y - (100.0f * editor_scale)), Vector2(1, 1)));
@@ -619,7 +636,8 @@ void FMODEditorInspectorProperty::close_popup()
 		if (get_child(i)->get_class() == "FMODEditorInspector")
 		{
 			inspector_browser->hide();
-			remove_child(inspector_browser);
+			if (inspector_browser->is_inside_tree())
+				remove_child(inspector_browser);
 		}
 	}
 
@@ -629,7 +647,7 @@ void FMODEditorInspectorProperty::close_popup()
 void FMODEditorInspectorProperty::reset()
 {
 	emit_changed(get_edited_property(), current_value);
-	notify_property_list_changed();
+	update_property();
 }
 
 void FMODEditorInspectorProperty::on_event_popup_id_pressed(int32_t id)

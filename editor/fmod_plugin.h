@@ -83,7 +83,7 @@ public:
 		}
 
 		// Set the Project Browser visible when pressed
-		project_preview_button->connect("pressed", Callable(this, "on_project_browser_button_pressed"));
+		project_preview_button->connect("pressed", callable_mp(this, &FMODEditorPlugin::on_project_browser_button_pressed));
 
 		gizmo_plugin.instantiate();
 		add_node_3d_gizmo_plugin(gizmo_plugin);

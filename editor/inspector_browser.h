@@ -58,6 +58,7 @@ private:
 public:
 	VBoxContainer* root_vbox = nullptr;
 	VBoxContainer* search_vbox = nullptr;
+	Button* clear_button = nullptr;
 	LineEdit* search_text = nullptr;
 	FMODEditorInspectorTree* tree = nullptr;
 	void initialize();
@@ -100,6 +101,9 @@ public:
 	void init(FMODStudioEditorModule::FMODAssetType asset_type);
 	virtual void update_property() override;
 	void on_button_pressed();
+
+	void on_revert_property();
+
 	void on_item_selected();
 	void open_popup();
 	void close_popup();
