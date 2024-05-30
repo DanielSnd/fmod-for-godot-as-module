@@ -369,12 +369,16 @@ Dictionary StudioSystem::get_parameter_by_name(const String& name) const
 
 bool StudioSystem::set_parameter_by_name(const String& name, float value, bool ignore_seek_speed) const
 {
+	if (studio_system == nullptr)
+		return false;
 	return ERROR_CHECK(studio_system->setParameterByName(name.utf8().get_data(), value, ignore_seek_speed));
 }
 
 bool StudioSystem::set_parameter_by_name_with_label(const String& name, const String& label,
 		bool ignore_seek_speed) const
 {
+	if (studio_system == nullptr)
+		return false;
 	return ERROR_CHECK(
 			studio_system->setParameterByNameWithLabel(name.utf8().get_data(), label.utf8().get_data(), ignore_seek_speed));
 }

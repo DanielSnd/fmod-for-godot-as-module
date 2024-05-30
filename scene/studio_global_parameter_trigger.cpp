@@ -204,10 +204,9 @@ void StudioGlobalParameterTrigger::trigger()
 		{
 			String parameter_name = parameter->get_name();
 			Variant _parameter_value = overridden_parameter["value"];
-
-			fmod_module->get_studio_system_ref()
-					->set_parameter_by_name(parameter_name, _parameter_value,
-							false);
+			Ref<StudioApi::StudioSystem> studio_system = fmod_module->get_studio_system_ref();
+			if (studio_system.is_valid())
+				studio_system->set_parameter_by_name(parameter_name, _parameter_value,false);
 		}
 	}
 }
@@ -219,6 +218,10 @@ void StudioGlobalParameterTrigger::do_enter_tree()
 
 void StudioGlobalParameterTrigger::do_ready()
 {
+	if ( FMODRuntime::get_singleton() == nullptr || !FMODRuntime::get_singleton()->has_initialized) {
+		get_tree()->connect(SNAME("process_frame"),callable_mp(this,&StudioGlobalParameterTrigger::do_ready), CONNECT_ONE_SHOT);
+		return;
+	}
 	handle_game_event(FmodGameEvent::GAMEEVENT_READY);
 }
 
