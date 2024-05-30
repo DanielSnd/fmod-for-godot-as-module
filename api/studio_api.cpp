@@ -148,9 +148,10 @@ Ref<EventDescription> StudioSystem::get_event_by_id(const String& event_guid) co
 	FMOD::Studio::parseID(event_guid.utf8().get_data(), &guid);
 	Ref<EventDescription> ref = create_ref<EventDescription>();
 
-	if (ERROR_CHECK(studio_system->getEventByID(&guid, &event_description)))
-	{
+	if (ERROR_CHECK(studio_system->getEventByID(&guid, &event_description))) {
 		ref->set_instance(event_description);
+	} else {
+		print_line("[FMOD] Couldn't get event by id ",event_guid);
 	}
 
 	return ref;

@@ -829,7 +829,7 @@ void FMODProjectBrowserWindow::create_export_guids_js_file() {
 	Error err;
 	file->open(export_guids_js_path, FileAccess::WRITE,&err);
 	if (err) {
-		ERR_PRINT(vformat("[FMOD] Error creating file ",export_guids_js_path," ",err));
+		ERR_PRINT(vformat("[FMOD] Error creating file %s %s %s",export_guids_js_path," ",err));
 		return;
 	}
 	// Write the JavaScript code to the file

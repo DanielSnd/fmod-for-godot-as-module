@@ -21,13 +21,16 @@ void StudioGlobalParameterTrigger::_bind_methods()
 void StudioGlobalParameterTrigger::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
-			do_enter_tree();
+			if (!Engine::get_singleton()->is_editor_hint())
+				do_enter_tree();
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
-			do_exit_tree();
+			if (!Engine::get_singleton()->is_editor_hint())
+				do_exit_tree();
 		} break;
 		case NOTIFICATION_READY: {
-			do_ready();
+			if (!Engine::get_singleton()->is_editor_hint())
+				do_ready();
 		} break;
 		// case NOTIFICATION_PROCESS: {
 		// 	//
@@ -219,8 +222,10 @@ void StudioGlobalParameterTrigger::do_enter_tree()
 void StudioGlobalParameterTrigger::do_ready()
 {
 	if ( FMODRuntime::get_singleton() == nullptr || !FMODRuntime::get_singleton()->has_initialized) {
-		get_tree()->connect(SNAME("process_frame"),callable_mp(this,&StudioGlobalParameterTrigger::do_ready), CONNECT_ONE_SHOT);
-		return;
+		if (SceneTree::get_singleton() != nullptr) {
+			SceneTree::get_singleton()->connect(SNAME("process_frame"),callable_mp(this,&StudioGlobalParameterTrigger::do_ready), CONNECT_ONE_SHOT);
+			return;
+		}
 	}
 	handle_game_event(FmodGameEvent::GAMEEVENT_READY);
 }
