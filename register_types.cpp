@@ -6,7 +6,7 @@
 #include "fmod_settings.h"
 #include "fmod_studio_editor_module.h"
 #include "fmod_studio_module.h"
-#include "editor/editor_plugin.h"
+#include "editor/plugins/editor_plugin.h"
 #include "editor/fmod_plugin.h"
 #include "editor/inspector_browser.h"
 #include "editor/project_browser.h"
