@@ -471,7 +471,9 @@ void FMODEditorInspectorProperty::init(FMODStudioEditorModule::FMODAssetType ass
 
 	tree->connect("item_selected", callable_mp(this,&FMODEditorInspectorProperty::on_item_selected));
 	property_control->connect("pressed", callable_mp(this,&FMODEditorInspectorProperty::on_button_pressed));
-
+	if (!is_initially_valid) {
+		property_control->set_self_modulate(Color{1.0,0.0,0.0,1.0});
+	}
 	event_popup = memnew(PopupMenu);
 	event_popup->add_item("Copy Path", EventPopupItems::EVENT_POPUP_COPY_PATH);
 	event_popup->add_item("Copy GUID", EventPopupItems::EVENT_POPUP_COPY_GUID);
@@ -631,17 +633,17 @@ void FMODEditorInspectorProperty::open_popup()
 
 void FMODEditorInspectorProperty::close_popup()
 {
+	inspector_browser->search_text->set_text("");
 	for (int i = 0; i < get_child_count(); i++)
 	{
-		if (get_child(i)->get_class() == "FMODEditorInspector")
-		{
-			inspector_browser->hide();
-			if (inspector_browser->is_inside_tree())
-				remove_child(inspector_browser);
+		if (get_child(i)->get_class() == "FMODEditorInspector" && inspector_browser == get_child(i)) {
+			if (inspector_browser->is_visible()) {
+				inspector_browser->hide();
+				if (inspector_browser->is_inside_tree())
+					call_deferred("remove_child",inspector_browser);
+			}
 		}
 	}
-
-	inspector_browser->search_text->set_text("");
 }
 
 void FMODEditorInspectorProperty::reset()

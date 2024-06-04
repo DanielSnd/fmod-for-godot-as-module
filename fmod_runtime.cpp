@@ -13,11 +13,26 @@ void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_debug_print_event_calls"), &FMODRuntime::get_debug_print_event_calls);
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_print_event_calls"), "set_debug_print_event_calls", "get_debug_print_event_calls");
 
+    ClassDB::bind_method(D_METHOD("set_has_initialized", "initialized"), &FMODRuntime::set_has_initialized);
+    ClassDB::bind_method(D_METHOD("get_has_initialized"), &FMODRuntime::get_has_initialized);
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "has_initialized"), "set_has_initialized", "get_has_initialized");
+    
+    ClassDB::bind_method(D_METHOD("set_current_snapshot", "event_asset"), &FMODRuntime::set_current_snapshot);
+    ClassDB::bind_method(D_METHOD("get_current_snapshot"), &FMODRuntime::get_current_snapshot);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "current_snapshot", PROPERTY_HINT_RESOURCE_TYPE, "EventAsset"), "set_current_snapshot", "get_current_snapshot");
+    
+    ClassDB::bind_method(D_METHOD("set_current_music", "event_asset"), &FMODRuntime::set_current_music);
+    ClassDB::bind_method(D_METHOD("get_current_music"), &FMODRuntime::get_current_music);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "current_music", PROPERTY_HINT_RESOURCE_TYPE, "EventAsset"), "set_current_music", "get_current_music");
+    
     ClassDB::bind_method(D_METHOD("path_to_guid","fmod_path"), &FMODRuntime::path_to_guid);
 
     ClassDB::bind_method(D_METHOD("set_click_and_hover_assets","click_eventasset","hover_eventasset"), &FMODRuntime::set_click_and_hover_assets);
     ClassDB::bind_method(D_METHOD("setup_button_sfx_callback","button","callback"), &FMODRuntime::setup_button_sfx_callback);
     ClassDB::bind_method(D_METHOD("setup_button_sfx","button"), &FMODRuntime::setup_button_sfx);
+
+    ClassDB::bind_method(D_METHOD("back_to_previous_music"), &FMODRuntime::back_to_previous_music);
+    ClassDB::bind_method(D_METHOD("back_to_previous_snapshot"), &FMODRuntime::back_to_previous_snapshot);
 
     ClassDB::bind_method(D_METHOD("get_event_description","event_asset"), &FMODRuntime::get_event_description);
     ClassDB::bind_method(D_METHOD("get_event_description_path","event_path"), &FMODRuntime::get_event_description_path);
@@ -39,6 +54,8 @@ void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("attach_instance_to_node","event_instance","node","physicsbody"), &FMODRuntime::attach_instance_to_node);
     ClassDB::bind_method(D_METHOD("detach_instance_from_node","event_instance"), &FMODRuntime::detach_instance_from_node);
     ClassDB::bind_method(D_METHOD("setup_in_tree"), &FMODRuntime::setup_in_tree);
+    ClassDB::bind_method(D_METHOD("set_parameter_by_name", "name", "value", "ignore_seek_speed"),&FMODRuntime::set_parameter_by_name, DEFVAL(false));
+    ADD_SIGNAL(MethodInfo("initialized"));
 }
 
 void FMODRuntime::_notification(int p_what) {
@@ -85,10 +102,134 @@ void FMODRuntime::do_enter_tree() {
             debug_scene = memnew(FMODDebugMonitor);
             call_deferred("add_child",debug_scene);
         }
+        if (!current_music.is_empty()) {
+            music_instance = create_instance_id(current_music);
+            music_instance->start();
+        }
+        if (!current_snapshot.is_empty()) {
+            snapshot_instance = create_instance_id(current_snapshot);
+            snapshot_instance->start();
+        }
+        emit_signal("initialized");
+    }
+}
+
+void FMODRuntime::back_to_previous_music() {
+    if (current_music != previous_music && !previous_music_resource_path.is_empty() && ResourceLoader::exists(previous_music_resource_path)) {
+        Ref<EventAsset> res_previous_music =  ResourceLoader::load(previous_music_resource_path);
+        if (res_previous_music.is_valid()) {
+            set_current_music(res_previous_music);
+        }
+    }
+}
+
+void FMODRuntime::back_to_previous_snapshot() {
+    if (current_snapshot != previous_snapshot && !previous_snapshot_resource_path.is_empty() && ResourceLoader::exists(previous_snapshot_resource_path)) {
+        Ref<EventAsset> res_previous_snapshot =  ResourceLoader::load(previous_snapshot_resource_path);
+        if (res_previous_snapshot.is_valid()) {
+            set_current_snapshot(res_previous_snapshot);
+        }
     }
 }
 
 void FMODRuntime::make_button_grab_focus(Control* button) { if(button != nullptr && button->get_focus_mode() != Control::FOCUS_NONE) button->grab_focus(); }
+
+void FMODRuntime::set_current_music(const Ref<EventAsset> &desired_music) {
+    if (!has_initialized) {
+        if (desired_music.is_valid()) {
+            current_music = desired_music->get_guid();
+            current_music_resource_path = desired_music->get_path();
+        }
+        return;
+    }
+    if (desired_music.is_null() || !desired_music.is_valid()) {
+        if (!current_music.is_empty()) {
+            previous_music = current_music;
+            previous_music_resource_path = current_music_resource_path;
+        }
+        current_music = "";
+        current_music_resource_path = "";
+    }
+    else {
+        if (desired_music->get_path() != current_music_resource_path) {
+            if (!current_music.is_empty()) {
+                previous_music = current_music;
+                previous_music_resource_path = current_music_resource_path;
+            }
+            if (music_instance.is_valid()) {
+                auto result = music_instance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+                result = music_instance->release();
+                music_instance.unref();
+            }
+            current_music = desired_music->get_guid();
+            current_music_resource_path = desired_music->get_path();
+            music_instance = create_instance_id(desired_music->get_guid());
+            if (music_instance.is_valid()) {
+                auto result = music_instance->start();
+            }
+        }
+    }
+}
+
+Ref<EventAsset> FMODRuntime::get_current_music() const {
+    Ref<EventAsset> return_current_music;
+    if (!current_music_resource_path.is_empty() && ResourceLoader::exists(current_music_resource_path)) {
+        return_current_music =  ResourceLoader::load(current_music_resource_path);
+    }
+    return return_current_music;
+}
+
+bool FMODRuntime::set_parameter_by_name(const String &name, float value, bool ignore_seek_speed) {
+    if (has_initialized) {
+        return FMODStudioModule::get_singleton()->get_studio_system_ref()->set_parameter_by_name(name,value,ignore_seek_speed);
+    }
+    return false;
+}
+
+void FMODRuntime::set_current_snapshot(const Ref<EventAsset> &desired_snapshot) {
+    if (!has_initialized) {
+        if (desired_snapshot.is_valid()) {
+            current_snapshot = desired_snapshot->get_guid();
+            current_snapshot_resource_path = desired_snapshot->get_path();
+        }
+        return;
+    }
+    if (desired_snapshot.is_null() || !desired_snapshot.is_valid()) {
+        if (!current_snapshot.is_empty()) {
+            previous_snapshot = current_snapshot;
+            previous_snapshot_resource_path = current_snapshot_resource_path;
+        }
+        current_snapshot = "";
+        current_snapshot_resource_path = "";
+    }
+    else {
+        if (desired_snapshot->get_path() != current_snapshot_resource_path) {
+            if (!current_snapshot.is_empty()) {
+                previous_snapshot = current_snapshot;
+                previous_snapshot_resource_path = current_snapshot_resource_path;
+            }
+            if (snapshot_instance.is_valid()) {
+                auto result = snapshot_instance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+                result = snapshot_instance->release();
+                snapshot_instance.unref();
+            }
+            current_snapshot = desired_snapshot->get_guid();
+            current_snapshot_resource_path = desired_snapshot->get_path();
+            snapshot_instance = create_instance_id(desired_snapshot->get_guid());
+            if (snapshot_instance.is_valid()) {
+                auto result = snapshot_instance->start();
+            }
+        }
+    }
+}
+
+Ref<EventAsset> FMODRuntime::get_current_snapshot() const {
+    Ref<EventAsset> return_current_snapshot;
+    if (!current_snapshot_resource_path.is_empty() && ResourceLoader::exists(current_snapshot_resource_path)) {
+        return_current_snapshot =  ResourceLoader::load(current_snapshot_resource_path);
+    }
+    return return_current_snapshot;
+}
 
 void FMODRuntime::set_click_and_hover_assets(const Ref<EventAsset> &_click, const Ref<EventAsset> &_hover) {
     has_sfx_click = _click.is_valid();
@@ -345,9 +486,25 @@ void FMODRuntime::setup_in_tree() {
 
 FMODRuntime::FMODRuntime() {
     singleton = this;
+    last_time_played_hover = 0;
+    last_time_played_click = 0;
+    debug_scene = nullptr;
 }
 
 FMODRuntime::~FMODRuntime() {
+    if (has_initialized) {
+        if (snapshot_instance.is_valid()) {
+            snapshot_instance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+            snapshot_instance->release();
+            snapshot_instance.unref();
+        }
+
+        if (music_instance.is_valid()) {
+            music_instance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+            music_instance->release();
+            music_instance.unref();
+        }
+    }
     if(singleton != nullptr && singleton == this) {
         singleton = nullptr;
     }

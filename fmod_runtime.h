@@ -26,8 +26,8 @@ class FMODRuntime : public Node
     protected:
         static void _bind_methods();
 
-		uint64_t last_time_played_hover;
-		uint64_t last_time_played_click;
+		uint64_t last_time_played_hover = 0;
+		uint64_t last_time_played_click = 0;
 		bool has_sfx_click = false;
 		bool has_sfx_hover = false;
 		bool already_setup_in_tree = false;
@@ -36,7 +36,7 @@ class FMODRuntime : public Node
 		Ref<StudioApi::StudioSystem> get_studio_system(){return studio_system;}
 		void set_studio_system(Ref<StudioApi::StudioSystem> val){studio_system = val;}
 
-		Node* debug_scene;
+		Node* debug_scene{};
 		Node* get_debug_scene() {return debug_scene;}
 		void set_debug_scene(Node* val) { debug_scene = val; }
 
@@ -44,9 +44,30 @@ class FMODRuntime : public Node
 
 		void do_enter_tree();
 
+		Ref<StudioApi::EventInstance> snapshot_instance;
+		Ref<StudioApi::EventInstance> music_instance;
 
-		String sfx_click_asset;
-		String sfx_hover_asset;
+		void back_to_previous_music();
+		void back_to_previous_snapshot();
+
+		String previous_music = "";
+		String previous_music_resource_path = "";
+		String current_music = "";
+		String current_music_resource_path = "";
+		void set_current_music(const Ref<EventAsset> &desired_snapshot);
+		Ref<EventAsset> get_current_music() const;
+
+		bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed = false);
+
+		String previous_snapshot = "";
+		String previous_snapshot_resource_path = "";
+		String current_snapshot = "";
+		String current_snapshot_resource_path = "";
+		void set_current_snapshot(const Ref<EventAsset> &desired_snapshot);
+		Ref<EventAsset> get_current_snapshot() const;
+
+		String sfx_click_asset = "";
+		String sfx_hover_asset = "";
 		void set_click_and_hover_assets(const Ref<EventAsset> &_click, const Ref<EventAsset> &_hover);
 
 		void make_button_grab_focus(Control *button);
@@ -102,6 +123,10 @@ class FMODRuntime : public Node
 
 
 		bool has_initialized = false;
+		bool get_has_initialized() {return has_initialized;}
+		void set_has_initialized(bool v) {
+		}
+
 		bool debug_print_event_calls = false;
 		bool get_debug_print_event_calls() const {return debug_print_event_calls;}
 		void set_debug_print_event_calls(bool val) {debug_print_event_calls = val;}

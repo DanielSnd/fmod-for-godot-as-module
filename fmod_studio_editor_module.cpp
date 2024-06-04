@@ -793,6 +793,49 @@ Dictionary FMODStudioEditorModule::get_project_info_from_banks()
 	return result;
 }
 
+bool FMODStudioEditorModule::is_fmod_asset_valid(const String &fmod_path,
+	FMODAssetType asset_type) {
+	Array assets;
+	if (!project_cache.is_valid()) {
+		return true;
+	} else {
+		switch (asset_type) {
+			case FMOD_ASSETTYPE_NONE:
+				return true;
+			break;
+			case FMOD_ASSETTYPE_EVENT:
+				assets = project_cache->get_events().values();
+			break;
+			case FMOD_ASSETTYPE_SNAPSHOT: {
+				assets = project_cache->get_snapshots().values();
+			}
+			break;
+			case FMOD_ASSETTYPE_BANK:
+				assets = project_cache->get_banks().values();
+			break;
+			case FMOD_ASSETTYPE_BUS:
+				assets = project_cache->get_busses().values();
+				break;
+			case FMOD_ASSETTYPE_VCA:
+				assets = project_cache->get_vcas().values();
+				break;
+			case FMOD_ASSETTYPE_GLOBAL_PARAMETER:
+				assets = project_cache->get_parameters().values();
+				break;
+			case FMOD_ASSETTYPE_FOLDER:
+				return true;
+		}
+		for (int64_t i = 0; i < assets.size(); i++) {
+			Variant asset = assets[i];
+			String path = asset.get("fmod_path");
+			if (fmod_path == path)
+				return true;
+		}
+		return false;
+	}
+}
+
+
 Array FMODStudioEditorModule::create_tree(const Dictionary& list, const FMODAssetType asset_type)
 {
 	Dictionary tree;
@@ -1237,6 +1280,41 @@ void ProjectCache::initialize_cache(const Dictionary& project_info)
 	ResourceSaver::save(this, cache_path);
 	print_line(vformat("[FMOD] Cache created in %s",cache_path));
 	emit_changed();
+
+	const String resources_path = "res://FMOD/editor/resources";
+	Dictionary resource_dirs;
+	resource_dirs["events"] = "res://FMOD/editor/resources/events/";
+	resource_dirs["snapshots"] = "res://FMOD/editor/resources/snapshots/";
+	resource_dirs["busses"] = "res://FMOD/editor/resources/busses/";
+	resource_dirs["vcas"] = "res://FMOD/editor/resources/vcas/";
+	resource_dirs["parameters"] = "res://FMOD/editor/resources/parameters/";
+	Array all_fmod_paths;
+	all_fmod_paths.append_array(get_events().keys());
+	all_fmod_paths.append_array(get_snapshots().keys());
+	all_fmod_paths.append_array(get_busses().keys());
+	all_fmod_paths.append_array(get_vcas().keys());
+	all_fmod_paths.append_array(get_parameters().keys());
+	// print_line(vformat("All fmod paths %s",all_fmod_paths));
+	for (const auto& dir_path: resource_dirs.values()) {
+		Ref<DirAccess> new_dir = DirAccess::open(dir_path);
+		if (!new_dir.is_null()) {
+			new_dir->list_dir_begin();
+			String file_name = new_dir->get_next();
+			while (!file_name.is_empty()) {
+				//print_line(vformat("filename [%s]. Load path [%s]",file_name,vformat("%s/%s",dir_path,file_name)));
+				if (file_name.ends_with(".tres") && (!all_fmod_paths.has(file_name.replace(".tres","")))) {
+					Ref<FMODAsset> loaded_asset = ResourceLoader::load(vformat("%s/%s",dir_path,file_name));
+					if (loaded_asset.is_valid()) {
+						print_line(vformat("[FMOD] FMOD Asset [%s] path [%s] not found in fmod bank",file_name,loaded_asset->get_fmod_path()));
+					}
+					else {
+						print_line(vformat("[FMOD] FMOD Asset [%s] not found in fmod bank",file_name));
+					}
+				}
+				file_name = new_dir->get_next();
+			}
+		}
+	}
 }
 
 void ProjectCache::set_banks(const Dictionary& _banks)
@@ -1297,6 +1375,45 @@ void ProjectCache::set_parameters(const Dictionary& _parameters)
 Dictionary ProjectCache::get_parameters()
 {
 	return parameters;
+}
+
+void ProjectCache::delete_invalid_event_assets() {
+	const String resources_path = "res://FMOD/editor/resources";
+	Dictionary resource_dirs;
+	resource_dirs["events"] = "res://FMOD/editor/resources/events/";
+	resource_dirs["snapshots"] = "res://FMOD/editor/resources/snapshots/";
+	resource_dirs["busses"] = "res://FMOD/editor/resources/busses/";
+	resource_dirs["vcas"] = "res://FMOD/editor/resources/vcas/";
+	resource_dirs["parameters"] = "res://FMOD/editor/resources/parameters/";
+	Array all_fmod_paths;
+	all_fmod_paths.append_array(get_events().keys());
+	all_fmod_paths.append_array(get_snapshots().keys());
+	all_fmod_paths.append_array(get_busses().keys());
+	all_fmod_paths.append_array(get_vcas().keys());
+	all_fmod_paths.append_array(get_parameters().keys());
+	// print_line(vformat("All fmod paths %s",all_fmod_paths));
+	Vector<String> paths_for_deletion;
+	for (const auto& dir_path: resource_dirs.values()) {
+		Ref<DirAccess> new_dir = DirAccess::open(dir_path);
+		if (!new_dir.is_null())
+		{
+			new_dir->list_dir_begin();
+			String file_name = new_dir->get_next();
+			while (!file_name.is_empty()) {
+				if (file_name.ends_with(".tres") && (!all_fmod_paths.has(file_name.replace(".tres","")))) {
+					paths_for_deletion.push_back(vformat("%s/%s",dir_path,file_name));
+				}
+				file_name = new_dir->get_next();
+			}
+		}
+	}
+	if (!paths_for_deletion.is_empty()) {
+		for (const String& delete_path: paths_for_deletion) {
+			if (DirAccess::remove_absolute(delete_path) == 0) {
+				print_line(vformat("[FMOD] FMOD Asset [%s] deleted",delete_path));
+			}
+		}
+	}
 }
 
 void ProjectCache::set_bank_tree(const Array& _bank_tree)

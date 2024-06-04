@@ -68,6 +68,7 @@ protected:
 public:
 	StudioEventEmitterImpl<StudioEventEmitter2D> implementation;
 
+	bool has_done_enter_tree = false;
 	void do_enter_tree();
 	void do_ready();
 	void do_exit_tree();
@@ -129,7 +130,7 @@ public:
 	virtual void do_process(double p_delta);
 
 	void handle_game_event(FmodGameEvent game_event);
-
+	bool has_done_enter_tree = false;
 	void play();
 	void stop();
 	void lookup();

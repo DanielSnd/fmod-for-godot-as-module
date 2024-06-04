@@ -103,8 +103,10 @@ public:
 	void reload_cache_file();
 	Ref<ProjectCache> get_project_cache();
 	Dictionary get_project_info_from_banks();
-	Array create_tree(const Dictionary& list, const FMODAssetType asset_type);
+	Array create_tree(const Dictionary& list, FMODAssetType asset_type);
 	void create_tree_items(Object* root, const Array& items, Object* parent);
+
+	bool is_fmod_asset_valid(const String &fmod_path, FMODAssetType asset_type);
 
 	bool sort_items_by_path(const Variant& a, const Variant& b);
 	bool sort_parameters_by_name(const Variant& a, const Variant& b);
@@ -160,6 +162,7 @@ public:
 	Dictionary get_vcas();
 	void set_parameters(const Dictionary& parameters);
 	Dictionary get_parameters();
+	void delete_invalid_event_assets();
 	void set_bank_tree(const Array& bank_tree);
 	Array get_bank_tree();
 	void set_event_tree(const Array& event_tree);

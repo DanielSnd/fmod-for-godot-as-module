@@ -338,7 +338,8 @@ void FMODProjectBrowserWindow::on_tutorials_link_pressed()
 
 void FMODProjectBrowserWindow::on_contact_link_pressed()
 {
-	OS::get_singleton()->shell_open(email_url);
+	FMODStudioEditorModule::get_singleton()->get_project_cache()->delete_invalid_event_assets();
+	// OS::get_singleton()->shell_open(email_url);
 }
 
 void FMODProjectBrowserWindow::on_search_text_changed(const String& text)
@@ -918,7 +919,7 @@ void FMODProjectBrowserWindow::initialize()
 	link_tutorials->set_text("Tutorials");
 	link_tutorials->connect("pressed", Callable(this, "on_tutorials_link_pressed"));
 	link_contact = memnew(LinkButton);
-	link_contact->set_text("Contact");
+	link_contact->set_text("Delete Invalid");
 	link_contact->connect("pressed", Callable(this, "on_contact_link_pressed"));
 
 	VSeparator* separator[2] = { memnew(VSeparator), memnew(VSeparator) };

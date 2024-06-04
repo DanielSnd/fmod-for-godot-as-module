@@ -688,17 +688,26 @@ void StudioEventEmitter2D::_bind_methods()
 void StudioEventEmitter2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
-			do_enter_tree();
+			if (!FMODRuntime::get_singleton()->has_initialized) {
+				if (!FMODRuntime::get_singleton()->is_connected("initialized",callable_mp(this, &StudioEventEmitter2D::do_enter_tree)))
+					FMODRuntime::get_singleton()->connect("initialized",callable_mp(this,&StudioEventEmitter2D::do_enter_tree), CONNECT_ONE_SHOT);
+			} else
+				do_enter_tree();
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
-			do_exit_tree();
+			if (has_done_enter_tree)
+				do_exit_tree();
 		} break;
 		case NOTIFICATION_READY: {
-			do_ready();
-			set_process(true);
+			if (!FMODRuntime::get_singleton()->has_initialized) {
+				if (!FMODRuntime::get_singleton()->is_connected("initialized",callable_mp(this, &StudioEventEmitter2D::do_ready)))
+					FMODRuntime::get_singleton()->connect("initialized",callable_mp(this,&StudioEventEmitter2D::do_ready), CONNECT_ONE_SHOT);
+			} else
+				do_ready();
 		} break;
 		case NOTIFICATION_PROCESS: {
-			do_process(get_process_delta_time());
+			if(has_done_enter_tree)
+				do_process(get_process_delta_time());
 		} break;
 		default:
 			break;
@@ -739,6 +748,7 @@ void StudioEventEmitter2D::do_enter_tree()
 void StudioEventEmitter2D::do_ready()
 {
 	implementation._ready();
+	set_process(true);
 }
 
 void StudioEventEmitter2D::do_exit_tree()
@@ -929,14 +939,22 @@ void StudioEventEmitter3D::_bind_methods()
 void StudioEventEmitter3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
-			do_enter_tree();
+			if (!FMODRuntime::get_singleton()->has_initialized) {
+				if (!FMODRuntime::get_singleton()->is_connected("initialized",callable_mp(this, &StudioEventEmitter3D::do_enter_tree)))
+					FMODRuntime::get_singleton()->connect("initialized",callable_mp(this,&StudioEventEmitter3D::do_enter_tree), CONNECT_ONE_SHOT);
+			} else
+				do_enter_tree();
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
-			do_exit_tree();
+			if (has_done_enter_tree)
+				do_exit_tree();
 		} break;
 		case NOTIFICATION_READY: {
-			do_ready();
-			set_process(true);
+			if (!FMODRuntime::get_singleton()->has_initialized) {
+				if (!FMODRuntime::get_singleton()->is_connected("initialized",callable_mp(this, &StudioEventEmitter3D::do_ready)))
+					FMODRuntime::get_singleton()->connect("initialized",callable_mp(this,&StudioEventEmitter3D::do_ready), CONNECT_ONE_SHOT);
+			} else
+				do_ready();
 		} break;
 		case NOTIFICATION_PROCESS: {
 			do_process(get_process_delta_time());
@@ -995,6 +1013,7 @@ void StudioEventEmitter3D::update_active_emitters()
 
 void StudioEventEmitter3D::do_enter_tree()
 {
+	has_done_enter_tree = true;
 	implementation.node = this;
 	implementation._enter_tree();
 
@@ -1007,6 +1026,7 @@ void StudioEventEmitter3D::do_enter_tree()
 void StudioEventEmitter3D::do_ready()
 {
 	implementation._ready();
+	set_process(true);
 }
 
 void StudioEventEmitter3D::do_exit_tree()
@@ -1016,12 +1036,14 @@ void StudioEventEmitter3D::do_exit_tree()
 
 void StudioEventEmitter3D::do_process(double p_delta)
 {
-	implementation._process(p_delta);
+	if(has_done_enter_tree)
+		implementation._process(p_delta);
 }
 
 void StudioEventEmitter3D::handle_game_event(FmodGameEvent game_event)
 {
-	implementation.handle_game_event(game_event);
+	if(has_done_enter_tree)
+		implementation.handle_game_event(game_event);
 }
 
 void StudioEventEmitter3D::play()

@@ -91,6 +91,7 @@ private:
 	Ref<Texture2D> icon;
 	Ref<Resource> current_value;
 	bool updating = false;
+	bool is_initially_valid = true;
 	FMODEditorInspector* inspector_browser;
 	FMODStudioEditorModule::FMODAssetType type = FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_NONE;
 	PopupMenu* event_popup;
@@ -109,6 +110,7 @@ public:
 	void close_popup();
 	void reset();
 	void on_event_popup_id_pressed(int32_t id);
+	void set_is_initially_valid(bool b) {is_initially_valid = b;}
 	void set_editor_scale(float editor_scale);
 	float get_editor_scale() const;
 };
@@ -137,6 +139,8 @@ public:
 			if (hint_string == "EventAsset")
 			{
 				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
+				Ref<EventAsset> found_event_asset = object->get(name);
+				control->set_is_initially_valid(found_event_asset.is_valid() ? FMODStudioEditorModule::get_singleton()->is_fmod_asset_valid(found_event_asset->get_fmod_path(), found_event_asset->get_is_snapshot() ? FMODStudioEditorModule::FMOD_ASSETTYPE_SNAPSHOT : FMODStudioEditorModule::FMOD_ASSETTYPE_EVENT) : true);
 				control->set_editor_scale(editor_scale);
 				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_EVENT);
 				add_property_editor(name, control);
@@ -146,6 +150,8 @@ public:
 			{
 				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
 				control->set_editor_scale(editor_scale);
+				Ref<EventAsset> found_event_asset = object->get(name);
+				control->set_is_initially_valid(found_event_asset.is_valid() ? FMODStudioEditorModule::get_singleton()->is_fmod_asset_valid(found_event_asset->get_fmod_path(), FMODStudioEditorModule::FMOD_ASSETTYPE_BANK) : true);
 				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_BANK);
 				add_property_editor(name, control);
 				return true;
@@ -154,6 +160,8 @@ public:
 			{
 				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
 				control->set_editor_scale(editor_scale);
+				Ref<EventAsset> found_event_asset = object->get(name);
+				control->set_is_initially_valid(found_event_asset.is_valid() ? FMODStudioEditorModule::get_singleton()->is_fmod_asset_valid(found_event_asset->get_fmod_path(), FMODStudioEditorModule::FMOD_ASSETTYPE_BUS) : true);
 				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_BUS);
 				add_property_editor(name, control);
 				return true;
@@ -162,6 +170,8 @@ public:
 			{
 				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
 				control->set_editor_scale(editor_scale);
+				Ref<EventAsset> found_event_asset = object->get(name);
+				control->set_is_initially_valid(found_event_asset.is_valid() ? FMODStudioEditorModule::get_singleton()->is_fmod_asset_valid(found_event_asset->get_fmod_path(), FMODStudioEditorModule::FMOD_ASSETTYPE_VCA) : true);
 				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_VCA);
 				add_property_editor(name, control);
 				return true;
@@ -170,6 +180,8 @@ public:
 			{
 				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
 				control->set_editor_scale(editor_scale);
+				Ref<EventAsset> found_event_asset = object->get(name);
+				control->set_is_initially_valid(found_event_asset.is_valid() ? FMODStudioEditorModule::get_singleton()->is_fmod_asset_valid(found_event_asset->get_fmod_path(), FMODStudioEditorModule::FMOD_ASSETTYPE_GLOBAL_PARAMETER) : true);
 				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_GLOBAL_PARAMETER);
 				add_property_editor(name, control);
 				return true;
