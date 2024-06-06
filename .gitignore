@@ -11,6 +11,8 @@ export_presets.cfg
 
 *.o
 *.obj
+*.arm64.d
+*.arm64.simulator.d
 
 # Mono-specific ignores
 .mono/
