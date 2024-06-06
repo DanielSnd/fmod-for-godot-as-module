@@ -1,6 +1,6 @@
 #config.py
 
-AVAILABLE_PLATFORMS = ["windows", "android", "macos", "linuxbsd","web"]
+AVAILABLE_PLATFORMS = ["windows", "android", "macos", "linuxbsd","web","ios"]
 
 def can_build(env, platform):
     return platform in AVAILABLE_PLATFORMS
@@ -34,6 +34,11 @@ def configure(env):
         env.Append(LIBPATH=["#../modules/fmodgodot/lib/core/lib/", "#../modules/fmodgodot/lib/studio/lib/"])
         env.Append(LIBS=["fmod", "fmodstudio"])
         env.Append(CPPDEFINES=["FMOD_OSX"])
+    elif env["platform"] == "ios":
+        env.Append(CPPPATH=['#../modules/fmodgodot/lib/core/inc/', '#../modules/fmodgodot/lib/studio/inc/'])
+        env.Append(LIBPATH=["#../modules/fmodgodot/lib/core/lib/ios/", "#../modules/fmodgodot/lib/studio/lib/ios/"])
+        env.Append(LIBS=["libfmod_iphoneos", "libfmodstudio_iphoneos"])
+        env.Append(CPPDEFINES=["FMOD_IOS"])
     elif env["platform"] == "android":
         libfmod = 'libfmod%s' % lfix
         libfmodstudio = 'libfmodstudio%s' % lfix
