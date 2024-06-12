@@ -126,6 +126,11 @@ void EventAsset::_bind_methods()
 	ClassDB::bind_method(D_METHOD("get_max_distance"), &EventAsset::get_max_distance);
 	ClassDB::bind_method(D_METHOD("set_parameters", "parameters"), &EventAsset::set_parameters);
 	ClassDB::bind_method(D_METHOD("get_parameters"), &EventAsset::get_parameters);
+
+	ClassDB::bind_method(D_METHOD("play_looped_attached","node"), &EventAsset::play_looped_attached);
+	ClassDB::bind_method(D_METHOD("play_looped","node","position"), &EventAsset::play_looped);
+	ClassDB::bind_method(D_METHOD("stop_looped","node"), &EventAsset::stop_looped);
+
 	ClassDB::bind_method(D_METHOD("play_one_shot","position"), &EventAsset::play_one_shot,DEFVAL(Variant{}));
 	ClassDB::bind_method(D_METHOD("play_one_shot_volume","volume","position"), &EventAsset::play_one_shot_volume,DEFVAL(Variant{}));
 	ClassDB::bind_method(D_METHOD("play_one_shot_attached","node"), &EventAsset::play_one_shot_attached);
@@ -338,6 +343,28 @@ void EventAsset::play_one_shot_attached(Node *node) {
 		return;
 	}
 	FMODRuntime::get_singleton()->play_one_shot_attached_id(get_guid(),node);
+}
+
+void EventAsset::stop_looped(Node *node) {
+	if (!Engine::get_singleton()->is_editor_hint() && !FMODStudioModule::get_singleton()->already_initialized) {
+		return;
+	}
+	FMODRuntime::get_singleton()->stop_looped_id(get_guid(), node->get_instance_id());
+}
+
+
+void EventAsset::play_looped_attached(Node *node) {
+	if (!Engine::get_singleton()->is_editor_hint() && !FMODStudioModule::get_singleton()->already_initialized) {
+		return;
+	}
+	FMODRuntime::get_singleton()->play_looped_attached_id(get_guid(), node);
+}
+
+void EventAsset::play_looped(Node *node, const Variant &position = Variant()) {
+	if (!Engine::get_singleton()->is_editor_hint() && !FMODStudioModule::get_singleton()->already_initialized) {
+		return;
+	}
+	FMODRuntime::get_singleton()->play_looped_id(get_guid(), node, position);
 }
 
 void EventAsset::play_one_shot(const Variant &position) {

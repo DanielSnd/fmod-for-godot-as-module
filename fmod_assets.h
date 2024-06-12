@@ -64,6 +64,12 @@ public:
 
 	void play_one_shot_attached(Node *node);
 
+	void stop_looped(Node *node);
+
+	void play_looped_attached(Node *node);
+
+	void play_looped(Node *node, const Variant &position);
+
 	void play_one_shot(const Variant &position);
 
 	void play_one_shot_volume(float volume, const Variant &position);

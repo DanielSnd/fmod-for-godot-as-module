@@ -127,6 +127,9 @@ public:
 	Ref<FmodTypes::FMOD_STUDIO_USER_PROPERTY> get_user_property_by_index(int index) const;
 	Ref<FmodTypes::FMOD_STUDIO_USER_PROPERTY> get_user_property(const String& name) const;
 	int get_length() const;
+
+	Vector2 get_min_max_distance_v2() const;
+
 	Dictionary get_min_max_distance() const;
 	float get_sound_size() const;
 
@@ -164,7 +167,7 @@ public:
 	void set_instance(FMOD::Studio::EventInstance* event_instance);
 
 	bool is_valid() const;
-
+	String created_guid;
 	Ref<EventDescription> get_description();
 
 	Dictionary get_volume() const;
@@ -195,6 +198,8 @@ public:
 	bool set_timeline_position(int position) const;
 
 	FMOD_STUDIO_PLAYBACK_STATE get_playback_state() const;
+
+	Vector2 get_min_max_distance_v2() const;
 
 	// note(alex): EventInstance::getChannelGroup not implemented due to missing Core API implementation.
 	Dictionary get_min_max_distance() const;

@@ -974,6 +974,20 @@ int EventDescription::get_length() const
 	return length;
 }
 
+
+Vector2 EventDescription::get_min_max_distance_v2() const
+{
+	Vector2 min_max_distance = Vector2(0.0f,0.0f);
+
+	float min_distance{}, max_distance{};
+	ERROR_CHECK(event_description->getMinMaxDistance(&min_distance, &max_distance));
+	min_max_distance.x = min_distance;
+	min_max_distance.y = max_distance;
+
+	return min_max_distance;
+}
+
+
 Dictionary EventDescription::get_min_max_distance() const
 {
 	Dictionary min_max_distance;
@@ -1492,6 +1506,24 @@ FMOD_STUDIO_PLAYBACK_STATE EventInstance::get_playback_state() const
 	}
 
 	return playback_state;
+}
+
+
+Vector2 EventInstance::get_min_max_distance_v2() const
+{
+	Vector2 min_max_distance;
+
+	float min_distance{}, max_distance{};
+
+	if (ERROR_CHECK(event_instance->getMinMaxDistance(&min_distance, &max_distance)))
+	{
+		min_max_distance.x = min_distance;
+		min_max_distance.y = max_distance;
+
+		return min_max_distance;
+	}
+
+	return min_max_distance;
 }
 
 Dictionary EventInstance::get_min_max_distance() const

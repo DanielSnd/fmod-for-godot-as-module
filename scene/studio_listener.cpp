@@ -91,7 +91,7 @@ void ListenerImpl::set_listener_location()
 
 		if (attenuation_node)
 		{
-			set_listener_attributes(attenuation_node->get_global_transform().get_origin(), listener_index, transform, rigidbody);
+			set_listener_attributes(attenuation_node->get_global_transform().get_origin()  / FMODStudioModule::get_singleton()->distance_scale_2d, listener_index, transform, rigidbody);
 		}
 		else
 		{
@@ -118,9 +118,10 @@ void ListenerImpl::set_listener_attributes(const Variant& attenuation, int num_l
 	RuntimeUtils::to_3d_attributes_transform_physicsbody(attributes, transform, _rigidbody);
 
 	FMODStudioModule* fmod_module = FMODStudioModule::get_singleton();
-	if (fmod_module)
+	if (fmod_module != nullptr)
 	{
 		fmod_module->get_studio_system_ref()->set_listener_attributes(num_listener, attributes, attenuation);
+		// print_line(vformat("Setting studio listener pos: %s attenuation: %s", attributes->get_position(), attenuation));
 	}
 }
 
@@ -139,12 +140,12 @@ float ListenerImpl::distance_to_nearest_listener(const Variant& position)
 				Transform2D t2d = listener_impl->node_2d->get_global_transform();
 				Vector2 origin = t2d.get_origin() / FMODStudioModule::get_singleton()->distance_scale_2d;
 				result = MIN(result, origin.distance_to(position));
+				// print_line("Checking distance to position ",position," from ",origin," result ",result);
 			}
 			else if (listener_impl->node_3d)
 			{
 				Transform3D t3d = listener_impl->node_3d->get_global_transform();
 				result = MIN(result, t3d.get_origin().distance_to(position));
-				print_line("Checking distance to position ",position," from ",t3d.get_origin()," result ",result);
 			}
 		}
 	}

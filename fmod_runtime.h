@@ -43,7 +43,7 @@ class FMODRuntime : public Node
 		void _notification(int p_what);
 
 		void do_enter_tree();
-
+		HashMap<ObjectID,Vector<Ref<StudioApi::EventInstance>>> looped_instances;
 		Ref<StudioApi::EventInstance> snapshot_instance;
 		Ref<StudioApi::EventInstance> music_instance;
 
@@ -94,11 +94,21 @@ class FMODRuntime : public Node
 
         void play_one_shot_attached(const Ref<EventAsset> &event_asset, Node *node);
 
-        void play_one_shot_attached_path(const String &event_path, Node *node);
+	void play_looped_attached(const Ref<EventAsset> &event_asset, Node *node);
+
+	void play_one_shot_attached_path(const String &event_path, Node *node);
 
         void play_one_shot_attached_id(const String &guid, Node *node);
 
-        void play_one_shot(const Ref<EventAsset> &event_asset, const Variant &position);
+	void play_looped_attached_id(const String &guid, Node *node);
+
+	void stop_looped_id(const String &guid, ObjectID node_obj_id);
+
+	void stop_looped(const Ref<EventAsset> &event_asset, Node *node);
+
+	void play_looped(const Ref<EventAsset> &event_asset, Node *node, const Variant &position);
+
+	void play_one_shot(const Ref<EventAsset> &event_asset, const Variant &position);
 
         void play_one_shot_path(const String &event_path, const Variant &position);
 
@@ -108,7 +118,9 @@ class FMODRuntime : public Node
 
 		void play_one_shot_id(const String &guid, const Variant &position);
 
-		void play_one_shot_id_volume(const String &guid, float volume, const Variant &position);
+	void play_looped_id(const String &guid, Node *node, const Variant &position);
+
+	void play_one_shot_id_volume(const String &guid, float volume, const Variant &position);
 
 		void attach_instance_to_node(const Ref<StudioApi::EventInstance> &instance, Node *node, Object *physicsbody);
 

@@ -630,12 +630,9 @@ float StudioEventEmitterImpl<T>::get_max_distance()
 			lookup();
 		}
 
-		Dictionary min_max_distance = event_description->get_min_max_distance();
+		Vector2 min_max_distance = event_description->get_min_max_distance_v2();
 
-		if (min_max_distance.has("max"))
-		{
-			return min_max_distance["max"];
-		}
+		return min_max_distance.y;
 	}
 
 	return 0.0f;

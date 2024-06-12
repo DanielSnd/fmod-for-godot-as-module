@@ -5,6 +5,7 @@
 #include "fmod_runtime.h"
 
 #include "scene/scene_string_names.h"
+#include "scene/studio_listener.h"
 #include "scene/gui/control.h"
 
 FMODRuntime* FMODRuntime::singleton = nullptr;
@@ -40,12 +41,21 @@ void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("create_instance","event_asset"), &FMODRuntime::create_instance);
     ClassDB::bind_method(D_METHOD("create_instance_path","event_path"), &FMODRuntime::create_instance_path);
     ClassDB::bind_method(D_METHOD("create_instance_id","event_id"), &FMODRuntime::create_instance_id);
+
     ClassDB::bind_method(D_METHOD("play_one_shot_attached","event_asset","node"), &FMODRuntime::play_one_shot_attached);
     ClassDB::bind_method(D_METHOD("play_one_shot_attached_path","event_path","node"), &FMODRuntime::play_one_shot_attached_path);
     ClassDB::bind_method(D_METHOD("play_one_shot_attached_id","event_guid","node"), &FMODRuntime::play_one_shot_attached_id);
     ClassDB::bind_method(D_METHOD("play_one_shot","event_asset","position"), &FMODRuntime::play_one_shot,DEFVAL(Variant{}));
     ClassDB::bind_method(D_METHOD("play_one_shot_path","event_path","position"), &FMODRuntime::play_one_shot_path,DEFVAL(Variant{}));
     ClassDB::bind_method(D_METHOD("play_one_shot_id","event_guid","position"), &FMODRuntime::play_one_shot_id,DEFVAL(Variant{}));
+
+    ClassDB::bind_method(D_METHOD("play_looped_attached","event_asset","node"), &FMODRuntime::play_looped_attached);
+    ClassDB::bind_method(D_METHOD("play_looped_attached_id","event_guid","node"), &FMODRuntime::play_looped_attached_id);
+    ClassDB::bind_method(D_METHOD("play_looped","event_asset","node","position"), &FMODRuntime::play_looped);
+    ClassDB::bind_method(D_METHOD("play_looped_id","event_guid","node","position"), &FMODRuntime::play_looped_id);
+    ClassDB::bind_method(D_METHOD("stop_looped_id","event_guid","node_instance_id"), &FMODRuntime::stop_looped_id);
+    ClassDB::bind_method(D_METHOD("stop_looped","event_asset","node_instance_id"), &FMODRuntime::stop_looped);
+
 
     ClassDB::bind_method(D_METHOD("play_one_shot_volume","event_asset","volume","position"), &FMODRuntime::play_one_shot_volume,DEFVAL(Variant{}));
     ClassDB::bind_method(D_METHOD("play_one_shot_path_volume","event_path","volume","position"), &FMODRuntime::play_one_shot_path_volume,DEFVAL(Variant{}));
@@ -322,6 +332,10 @@ void FMODRuntime::play_one_shot_attached(const Ref<EventAsset> &event_asset, Nod
     play_one_shot_attached_id(event_asset->get_guid(), node);
 }
 
+void FMODRuntime::play_looped_attached(const Ref<EventAsset> &event_asset, Node *node) {
+    play_looped_attached_id(event_asset->get_guid(), node);
+}
+
 void FMODRuntime::play_one_shot_attached_path(const String &event_path, Node *node) {
     play_one_shot_attached_id(path_to_guid(event_path), node);
 }
@@ -338,6 +352,47 @@ void FMODRuntime::play_one_shot_attached_id(const String &guid, Node *node) {
     }
     instance->start();
     instance->release();
+}
+
+void FMODRuntime::play_looped_attached_id(const String &guid, Node *node) {
+    Ref<StudioApi::EventInstance> instance = create_instance_id(guid);
+    if (node->is_class("Node2D") || node->is_class("Node3D")) {
+        attach_instance_to_node(instance, node,nullptr);
+    } else {
+        WARN_PRINT("[FMOD] Trying to attach an instance to an invalid node. The node should inherit Node3D or Node2D.");
+    }
+    if (debug_print_event_calls) {
+        print_line("[FMOD] Event called looped ",guid);
+    }
+    instance->created_guid = guid;
+    instance->start();
+    // If the outer_key doesn't exist in the outer HashMap, it would default construct an inner Vector
+    Vector<Ref<StudioApi::EventInstance>>& inner_map = looped_instances[node->get_instance_id()];
+    inner_map.push_back(instance);
+    auto destroy_callable = callable_mp(this,&FMODRuntime::stop_looped_id).bind(guid,node->get_instance_id());
+    if (!node->is_connected("tree_exiting", destroy_callable))
+        node->connect("tree_exiting", destroy_callable);
+}
+
+void FMODRuntime::stop_looped_id(const String &guid, ObjectID node_obj_id) {
+    if (node_obj_id.is_valid()) {
+        Vector<Ref<StudioApi::EventInstance>>& inner_map = looped_instances[node_obj_id];
+        for (int i = 0; i < inner_map.size(); ++i) {
+            auto ref_instance = inner_map[i];
+            if (ref_instance.is_valid() && ref_instance->created_guid == guid) {
+                ref_instance->release();
+                inner_map.remove_at(i);
+            }
+        }
+    }
+}
+
+void FMODRuntime::stop_looped(const Ref<EventAsset> &event_asset, Node *node) {
+    stop_looped_id(event_asset->get_guid(), node->get_instance_id());
+}
+
+void FMODRuntime::play_looped(const Ref<EventAsset> &event_asset, Node *node, const Variant &position = Variant()) {
+    play_looped_id(event_asset->get_guid(), node, position);
 }
 
 void FMODRuntime::play_one_shot(const Ref<EventAsset> &event_asset, const Variant &position = Variant()) {
@@ -362,8 +417,24 @@ void FMODRuntime::play_one_shot_id(const String &guid, const Variant &position =
     Variant::Type type = position.get_type();
     if (type == Variant::Type::OBJECT) {
         RuntimeUtils::to_3d_attributes_node(attributes, Object::cast_to<Node>(position), nullptr);
+        float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
+        bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
+        if (!should_play_instance) {
+            if (debug_print_event_calls) {
+                print_line("[FMOD] Event wasn't called because of distance ",guid);
+            }
+            return;
+        }
     } else if (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D) {
         RuntimeUtils::to_3d_attributes(attributes, position);
+        float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
+        bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
+        if (!should_play_instance) {
+            if (debug_print_event_calls) {
+                print_line("[FMOD] Event wasn't called because of distance ",guid);
+            }
+            return;
+        }
     } else {
         RuntimeUtils::to_3d_attributes(attributes, Vector3(0, 0, 0));
     }
@@ -373,6 +444,45 @@ void FMODRuntime::play_one_shot_id(const String &guid, const Variant &position =
     instance->set_3d_attributes(attributes);
     instance->start();
     instance->release();
+}
+
+void FMODRuntime::play_looped_id(const String &guid, Node *node, const Variant &position = Variant()) {
+    Ref<StudioApi::EventInstance> instance = create_instance_id(guid);
+    const Ref<FmodTypes::FMOD_3D_ATTRIBUTES> attributes = memnew(FmodTypes::FMOD_3D_ATTRIBUTES);
+    Variant::Type type = position.get_type();
+    if (type == Variant::Type::OBJECT) {
+        RuntimeUtils::to_3d_attributes_node(attributes, Object::cast_to<Node>(position), nullptr);
+        float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
+        bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
+        if (!should_play_instance) {
+            if (debug_print_event_calls) {
+                print_line("[FMOD] Event wasn't called because of distance ",guid);
+            }
+            return;
+        }
+    } else if (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D) {
+        RuntimeUtils::to_3d_attributes(attributes, position);
+        float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
+        bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
+        if (!should_play_instance) {
+            if (debug_print_event_calls) {
+                print_line("[FMOD] Event wasn't called because of distance ",guid);
+            }
+            return;
+        }
+    } else {
+        RuntimeUtils::to_3d_attributes(attributes, Vector3(0, 0, 0));
+    }
+    if (debug_print_event_calls) {
+        print_line("[FMOD] Event called ",guid);
+    }
+    instance->set_3d_attributes(attributes);
+    instance->start();
+    Vector<Ref<StudioApi::EventInstance>>& inner_map = looped_instances[node->get_instance_id()];
+    inner_map.push_back(instance);
+    auto destroy_callable = callable_mp(this,&FMODRuntime::stop_looped_id).bind(guid,node->get_instance_id());
+    if (!node->is_connected("tree_exiting", destroy_callable))
+        node->connect("tree_exiting", destroy_callable);
 }
 
 
