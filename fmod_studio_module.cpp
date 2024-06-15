@@ -14,6 +14,8 @@ void FMODStudioModule::_bind_methods()
 	ClassDB::bind_method(D_METHOD("init"), &FMODStudioModule::init);
 	ClassDB::bind_method(D_METHOD("shutdown"), &FMODStudioModule::shutdown);
 	ClassDB::bind_method(D_METHOD("get_studio_system"), &FMODStudioModule::get_studio_system_ref);
+	ClassDB::bind_method(D_METHOD("set_distance_scale_2d","distance_scale"), &FMODStudioModule::set_distance_scale_2d);
+	
 	ADD_SIGNAL(MethodInfo("fmod_initialized"));
 	ADD_SIGNAL(MethodInfo("fmod_shutdown"));
 	BIND_CONSTANT(FMOD_STUDIO_INIT_NORMAL);
@@ -127,6 +129,7 @@ void FMODStudioModule::_bind_methods()
 	BIND_ENUM_CONSTANT(FMOD_STUDIO_INSTANCETYPE_BANK);
 	BIND_ENUM_CONSTANT(FMOD_STUDIO_INSTANCETYPE_COMMANDREPLAY);
 }
+
 
 bool FMODStudioModule::initialize_fmod()
 {

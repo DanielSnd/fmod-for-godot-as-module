@@ -47,13 +47,15 @@ public:
 	~FMODStudioModule();
 
 	float distance_scale_2d{ 1.0f };
+	void set_distance_scale_2d(float v) {
+		distance_scale_2d = v;
+	}
 	bool already_initialized = false;
 	bool init();
 	void shutdown();
 	void attempt_autoload_runtime();
 
 	void execute_autoload_runtime();
-
 
 	Ref<StudioApi::StudioSystem> get_studio_system_ref();
 	FMOD::Studio::System* get_studio_system() const;

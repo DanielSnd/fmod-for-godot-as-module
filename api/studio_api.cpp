@@ -1509,8 +1509,7 @@ FMOD_STUDIO_PLAYBACK_STATE EventInstance::get_playback_state() const
 }
 
 
-Vector2 EventInstance::get_min_max_distance_v2() const
-{
+Vector2 EventInstance::get_min_max_distance_v2() const {
 	Vector2 min_max_distance;
 
 	float min_distance{}, max_distance{};
