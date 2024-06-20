@@ -1095,6 +1095,7 @@ Ref<EventInstance> EventDescription::create_instance()
 	if (ERROR_CHECK(event_description->createInstance(&instance)))
 	{
 		ref->set_instance(instance);
+		ref->is_instance_3d = is_3d();
 		return ref;
 	}
 
@@ -1325,6 +1326,10 @@ Ref<EventDescription> EventInstance::get_description()
 	}
 
 	return ref;
+}
+
+bool EventInstance::is_3d() const {
+	return is_instance_3d;
 }
 
 Dictionary EventInstance::get_volume() const

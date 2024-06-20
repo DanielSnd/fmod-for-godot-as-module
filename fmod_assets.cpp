@@ -34,6 +34,21 @@ void FMODAsset::set_fmod_path(const String& _path)
 	this->fmod_path = _path;
 }
 
+void FMODGuidDictionary::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_guid_dictionary", "guid_dictionary"), &FMODGuidDictionary::set_guid_dictionary);
+	ClassDB::bind_method(D_METHOD("get_guid_dictionary"), &FMODGuidDictionary::get_guid_dictionary);
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "guid_dictionary", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT),
+			"set_guid_dictionary", "get_guid_dictionary");
+}
+
+Dictionary FMODGuidDictionary::get_guid_dictionary() const {
+	return guid_dictionary;
+}
+
+void FMODGuidDictionary::set_guid_dictionary(const Dictionary &p_guid_dictionary) {
+	guid_dictionary = p_guid_dictionary;
+}
+
 void FMODAsset::set_guid(const String& _guid)
 {
 	this->guid = _guid;

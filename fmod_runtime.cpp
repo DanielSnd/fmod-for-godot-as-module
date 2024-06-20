@@ -25,7 +25,11 @@ void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_current_music", "event_asset"), &FMODRuntime::set_current_music);
     ClassDB::bind_method(D_METHOD("get_current_music"), &FMODRuntime::get_current_music);
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "current_music", PROPERTY_HINT_RESOURCE_TYPE, "EventAsset"), "set_current_music", "get_current_music");
-    
+
+    ClassDB::bind_method(D_METHOD("set_guid_dictionary", "event_asset"), &FMODRuntime::set_guid_dictionary);
+    ClassDB::bind_method(D_METHOD("get_guid_dictionary"), &FMODRuntime::get_guid_dictionary);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "guid_dictionary", PROPERTY_HINT_RESOURCE_TYPE, "FMODGuidDictionary"), "set_guid_dictionary", "get_guid_dictionary");
+
     ClassDB::bind_method(D_METHOD("path_to_guid","fmod_path"), &FMODRuntime::path_to_guid);
 
     ClassDB::bind_method(D_METHOD("set_click_and_hover_assets","click_eventasset","hover_eventasset"), &FMODRuntime::set_click_and_hover_assets);
@@ -104,7 +108,12 @@ void FMODRuntime::do_enter_tree() {
         studio_system = FMODStudioModule::get_singleton()->get_studio_system_ref();
 
         has_initialized = true;
-
+        const String guid_dictionary_path = "res://FMOD/fmod_guid_dictionary.tres";
+        if (!ResourceLoader::exists(guid_dictionary_path)) {
+            guid_dictionary.instantiate();
+        } else {
+            guid_dictionary = ResourceLoader::load(guid_dictionary_path, "FMODGuidDictionary");
+        }
         const String settings_path = get_platform_setting_path(PlatformSettingsPath::FMOD_SETTINGS_PATH);
         const bool enable_debug_performance =
                 static_cast<bool>(get_platform_project_setting(settings_path + String("debug_performance")));
@@ -124,6 +133,14 @@ void FMODRuntime::do_enter_tree() {
     }
 }
 
+Ref<FMODGuidDictionary> FMODRuntime::get_guid_dictionary() {
+    return guid_dictionary;
+}
+
+void FMODRuntime::set_guid_dictionary(const Dictionary &p_guid_dictionary) {
+    guid_dictionary = p_guid_dictionary;
+}
+
 void FMODRuntime::back_to_previous_music() {
     if (current_music != previous_music && !previous_music_resource_path.is_empty() && ResourceLoader::exists(previous_music_resource_path)) {
         Ref<EventAsset> res_previous_music =  ResourceLoader::load(previous_music_resource_path);
@@ -140,6 +157,13 @@ void FMODRuntime::back_to_previous_snapshot() {
             set_current_snapshot(res_previous_snapshot);
         }
     }
+}
+
+String FMODRuntime::path_from_guid(const String &guid) const {
+    if (guid_dictionary.is_valid()) {
+        return guid_dictionary->guid_dictionary.get(guid,guid);
+    }
+    return guid;
 }
 
 void FMODRuntime::make_button_grab_focus(Control* button) { if(button != nullptr && button->get_focus_mode() != Control::FOCUS_NONE) button->grab_focus(); }
@@ -348,7 +372,7 @@ void FMODRuntime::play_one_shot_attached_id(const String &guid, Node *node) {
         WARN_PRINT("[FMOD] Trying to attach an instance to an invalid node. The node should inherit Node3D or Node2D.");
     }
     if (debug_print_event_calls) {
-        print_line("[FMOD] Event called ",guid);
+        print_line("[FMOD] Event called ",path_from_guid(guid));
     }
     instance->start();
     instance->release();
@@ -362,7 +386,7 @@ void FMODRuntime::play_looped_attached_id(const String &guid, Node *node) {
         WARN_PRINT("[FMOD] Trying to attach an instance to an invalid node. The node should inherit Node3D or Node2D.");
     }
     if (debug_print_event_calls) {
-        print_line("[FMOD] Event called looped ",guid);
+        print_line("[FMOD] Event called looped ",path_from_guid(guid));
     }
     instance->created_guid = guid;
     instance->start();
@@ -413,25 +437,29 @@ void FMODRuntime::play_one_shot_path_volume(const String &event_path, const floa
 
 void FMODRuntime::play_one_shot_id(const String &guid, const Variant &position = Variant()) {
     Ref<StudioApi::EventInstance> instance = create_instance_id(guid);
+    if (!instance.is_valid()) {
+        return;
+    }
     const Ref<FmodTypes::FMOD_3D_ATTRIBUTES> attributes = memnew(FmodTypes::FMOD_3D_ATTRIBUTES);
     Variant::Type type = position.get_type();
-    if (type == Variant::Type::OBJECT) {
+    bool is_3d = instance->is_3d();
+    if (is_3d && type == Variant::Type::OBJECT) {
         RuntimeUtils::to_3d_attributes_node(attributes, Object::cast_to<Node>(position), nullptr);
         float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
         bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
         if (!should_play_instance) {
             if (debug_print_event_calls) {
-                print_line("[FMOD] Event wasn't called because of distance ",guid);
+                print_line("[FMOD] Event wasn't called because of distance ",path_from_guid(guid));
             }
             return;
         }
-    } else if (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D) {
+    } else if (is_3d && (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D)) {
         RuntimeUtils::to_3d_attributes(attributes, position);
         float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
         bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
         if (!should_play_instance) {
             if (debug_print_event_calls) {
-                print_line("[FMOD] Event wasn't called because of distance ",guid);
+                print_line("[FMOD] Event wasn't called because of distance ",path_from_guid(guid));
             }
             return;
         }
@@ -439,7 +467,7 @@ void FMODRuntime::play_one_shot_id(const String &guid, const Variant &position =
         RuntimeUtils::to_3d_attributes(attributes, Vector3(0, 0, 0));
     }
     if (debug_print_event_calls) {
-        print_line("[FMOD] Event called ",guid);
+        print_line("[FMOD] Event called ",path_from_guid(guid));
     }
     instance->set_3d_attributes(attributes);
     instance->start();
@@ -448,25 +476,29 @@ void FMODRuntime::play_one_shot_id(const String &guid, const Variant &position =
 
 void FMODRuntime::play_looped_id(const String &guid, Node *node, const Variant &position = Variant()) {
     Ref<StudioApi::EventInstance> instance = create_instance_id(guid);
+    if (!instance.is_valid()) {
+        return;
+    }
     const Ref<FmodTypes::FMOD_3D_ATTRIBUTES> attributes = memnew(FmodTypes::FMOD_3D_ATTRIBUTES);
     Variant::Type type = position.get_type();
-    if (type == Variant::Type::OBJECT) {
+    bool is_3d = instance->is_3d();
+    if (is_3d && type == Variant::Type::OBJECT) {
         RuntimeUtils::to_3d_attributes_node(attributes, Object::cast_to<Node>(position), nullptr);
         float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
         bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
         if (!should_play_instance) {
             if (debug_print_event_calls) {
-                print_line("[FMOD] Event wasn't called because of distance ",guid);
+                print_line("[FMOD] Event wasn't called because of distance ",path_from_guid(guid));
             }
             return;
         }
-    } else if (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D) {
+    } else if (is_3d && (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D)) {
         RuntimeUtils::to_3d_attributes(attributes, position);
         float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
         bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
         if (!should_play_instance) {
             if (debug_print_event_calls) {
-                print_line("[FMOD] Event wasn't called because of distance ",guid);
+                print_line("[FMOD] Event wasn't called because of distance ",path_from_guid(guid));
             }
             return;
         }
@@ -474,7 +506,8 @@ void FMODRuntime::play_looped_id(const String &guid, Node *node, const Variant &
         RuntimeUtils::to_3d_attributes(attributes, Vector3(0, 0, 0));
     }
     if (debug_print_event_calls) {
-        print_line("[FMOD] Event called ",guid);
+
+        print_line("[FMOD] Event called ",path_from_guid(guid));
     }
     instance->set_3d_attributes(attributes);
     instance->start();
@@ -488,17 +521,37 @@ void FMODRuntime::play_looped_id(const String &guid, Node *node, const Variant &
 
 void FMODRuntime::play_one_shot_id_volume(const String &guid, const float volume, const Variant &position = Variant()) {
     Ref<StudioApi::EventInstance> instance = create_instance_id(guid);
+    if (!instance.is_valid()) {
+        return;
+    }
     const Ref<FmodTypes::FMOD_3D_ATTRIBUTES> attributes = memnew(FmodTypes::FMOD_3D_ATTRIBUTES);
     Variant::Type type = position.get_type();
-    if (type == Variant::Type::OBJECT) {
+    bool is_3d = instance->is_3d();
+    if (is_3d && type == Variant::Type::OBJECT) {
         RuntimeUtils::to_3d_attributes_node(attributes, Object::cast_to<Node>(position), nullptr);
-    } else if (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D) {
+        float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
+        bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
+        if (!should_play_instance) {
+            if (debug_print_event_calls) {
+                print_line("[FMOD] Event wasn't called because of distance ",path_from_guid(guid));
+            }
+            return;
+        }
+    } else if (is_3d && (type == Variant::Type::VECTOR2 || type == Variant::Type::VECTOR3 || type == Variant::Type::TRANSFORM2D || type == Variant::Type::TRANSFORM3D)) {
         RuntimeUtils::to_3d_attributes(attributes, position);
+        float max_distance = instance->get_min_max_distance_v2().y * instance->get_min_max_distance_v2().y;
+        bool should_play_instance = ListenerImpl::distance_to_nearest_listener(attributes->get_position()) <= max_distance * max_distance;
+        if (!should_play_instance) {
+            if (debug_print_event_calls) {
+                print_line("[FMOD] Event wasn't called because of distance ",path_from_guid(guid));
+            }
+            return;
+        }
     } else {
         RuntimeUtils::to_3d_attributes(attributes, Vector3(0, 0, 0));
     }
     if (debug_print_event_calls) {
-        print_line("[FMOD] Event called ",guid);
+        print_line("[FMOD] Event called ",path_from_guid(guid));
     }
     instance->set_3d_attributes(attributes);
     instance->set_volume(volume);

@@ -62,6 +62,7 @@ public:
 	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed = false) const;
 	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed = false) const;
 
+
 	String lookup_id(const String& path) const;
 	String lookup_path(const String& guid) const;
 
@@ -170,6 +171,8 @@ public:
 	String created_guid;
 	Ref<EventDescription> get_description();
 
+	bool is_instance_3d = false;
+	bool is_3d() const;
 	Dictionary get_volume() const;
 	bool set_volume(float volume) const;
 

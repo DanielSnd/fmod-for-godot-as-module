@@ -29,6 +29,20 @@ private:
 	String guid{};
 };
 
+class FMODGuidDictionary : public Resource
+{
+	GDCLASS(FMODGuidDictionary, Resource);
+
+protected:
+	static void _bind_methods();
+
+public:
+	Dictionary get_guid_dictionary() const;
+	void set_guid_dictionary(const Dictionary &p_guid_dictionary);
+	Dictionary guid_dictionary;
+
+};
+
 class BankAsset : public FMODAsset
 {
 	GDCLASS(BankAsset, FMODAsset);

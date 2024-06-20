@@ -87,6 +87,7 @@ void initialize_fmodgodot_module(ModuleInitializationLevel p_level)
 		Engine::get_singleton()->add_singleton(Engine::Singleton("FMODStudioModule", FMODStudioModule::get_singleton()));
 		fmod_runtime = memnew(FMODRuntime);
 		Engine::get_singleton()->add_singleton(Engine::Singleton("FMODRuntime", FMODRuntime::get_singleton()));
+
 		// Studio API
 		ClassDB::register_class<StudioApi::StudioSystem>();
 		ClassDB::register_class<StudioApi::EventDescription>();
@@ -114,6 +115,7 @@ void initialize_fmodgodot_module(ModuleInitializationLevel p_level)
 		ClassDB::register_class<BusAsset>();
 		ClassDB::register_class<VCAAsset>();
 		ClassDB::register_class<ParameterAsset>();
+		ClassDB::register_class<FMODGuidDictionary>();
 
 		// Runtime Utils
 		ClassDB::register_class<RuntimeUtils>();

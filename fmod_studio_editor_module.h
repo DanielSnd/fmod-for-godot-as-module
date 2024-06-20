@@ -147,6 +147,7 @@ public:
 	Dictionary busses;
 	Dictionary vcas;
 	Dictionary parameters;
+	Dictionary guid_to_path;
 
 	void initialize_cache(const Dictionary& project_info);
 
@@ -157,11 +158,13 @@ public:
 	void set_snapshots(const Dictionary& snapshots);
 	Dictionary get_snapshots();
 	void set_busses(const Dictionary& busses);
-	Dictionary get_busses();
+	Dictionary get_busses() const;
 	void set_vcas(const Dictionary& vcas);
-	Dictionary get_vcas();
+	Dictionary get_vcas() const;
 	void set_parameters(const Dictionary& parameters);
-	Dictionary get_parameters();
+	Dictionary get_parameters() const;
+	void set_guid_to_path(const Dictionary& guid_to_path);
+	Dictionary get_guid_to_path() const;
 	void delete_invalid_event_assets();
 	void set_bank_tree(const Array& bank_tree);
 	Array get_bank_tree();

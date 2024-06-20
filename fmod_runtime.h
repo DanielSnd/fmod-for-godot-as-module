@@ -46,10 +46,13 @@ class FMODRuntime : public Node
 		HashMap<ObjectID,Vector<Ref<StudioApi::EventInstance>>> looped_instances;
 		Ref<StudioApi::EventInstance> snapshot_instance;
 		Ref<StudioApi::EventInstance> music_instance;
-
+		Ref<FMODGuidDictionary> guid_dictionary;
+		Ref<FMODGuidDictionary> get_guid_dictionary();
+		void set_guid_dictionary(const Dictionary &p_guid_dictionary);
 		void back_to_previous_music();
 		void back_to_previous_snapshot();
 
+		String path_from_guid(const String &guid) const;
 		String previous_music = "";
 		String previous_music_resource_path = "";
 		String current_music = "";
