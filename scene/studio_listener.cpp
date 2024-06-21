@@ -145,7 +145,8 @@ float ListenerImpl::distance_to_nearest_listener(const Variant& position)
 			else if (listener_impl->node_3d)
 			{
 				Transform3D t3d = listener_impl->node_3d->get_global_transform();
-				result = MIN(result, t3d.get_origin().distance_to(position));
+				Vector3 origin = t3d.get_origin() / FMODStudioModule::get_singleton()->distance_scale_2d;
+				result = MIN(result, origin.distance_to(position));
 			}
 		}
 	}

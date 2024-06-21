@@ -154,11 +154,11 @@ enum class VectorType
 	VELOCITY
 };
 
-static inline void vector3_to_fmod_vector(const Vector3& in_vector, FMOD_VECTOR& out_vector)
+static inline void vector3_to_fmod_vector(const Vector3& in_vector, FMOD_VECTOR& out_vector, float distance_scale_2d = 1.0f)
 {
-	out_vector.x = in_vector.x;
-	out_vector.y = in_vector.y;
-	out_vector.z = in_vector.z;
+	out_vector.x = in_vector.x / distance_scale_2d;
+	out_vector.y = in_vector.y / distance_scale_2d;
+	out_vector.z = in_vector.z / distance_scale_2d;
 }
 
 static inline void fmod_vector_to_vector3(const FMOD_VECTOR& in_vector, Vector3& out_vector)
@@ -177,12 +177,12 @@ static inline void vector2_to_fmod_vector(const Vector2& in_vector, FMOD_VECTOR&
 }
 
 static inline void transform3d_to_fmod_vector(const Transform3D& in_transform, FMOD_VECTOR& out_vector,
-		const VectorType& type, Object* physicsbody3d = nullptr)
+		const VectorType& type, Object* physicsbody3d = nullptr, const float distance_scale_2d = 1.0)
 {
 	switch (type)
 	{
 		case VectorType::POSITION:
-			vector3_to_fmod_vector(in_transform.get_origin(), out_vector);
+			vector3_to_fmod_vector(in_transform.get_origin() / distance_scale_2d, out_vector);
 			break;
 		case VectorType::FORWARD:
 			vector3_to_fmod_vector(-in_transform.get_basis().get_column(2).normalized(), out_vector);
@@ -217,9 +217,9 @@ static inline void transform3d_to_fmod_vector(const Transform3D& in_transform, F
 	}
 }
 
-static inline void transform3d_to_3dattributes(const Transform3D& in_transform, FMOD_3D_ATTRIBUTES& out_attributes, Object* physicsbody3d = nullptr)
+static inline void transform3d_to_3dattributes(const Transform3D& in_transform, FMOD_3D_ATTRIBUTES& out_attributes, Object* physicsbody3d = nullptr, float distance_scale_2d = 1.0f)
 {
-	transform3d_to_fmod_vector(in_transform, out_attributes.position, VectorType::POSITION);
+	transform3d_to_fmod_vector(in_transform, out_attributes.position, VectorType::POSITION, nullptr, distance_scale_2d);
 	transform3d_to_fmod_vector(in_transform, out_attributes.forward, VectorType::FORWARD);
 	transform3d_to_fmod_vector(in_transform, out_attributes.up, VectorType::UP);
 	transform3d_to_fmod_vector(in_transform, out_attributes.velocity, VectorType::VELOCITY, physicsbody3d);

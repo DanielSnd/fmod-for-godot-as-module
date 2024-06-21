@@ -468,7 +468,7 @@ void StudioEventEmitterImpl<StudioEventEmitter3D>::update_playing_status(bool fo
 	bool should_play_instance{};
 
 	const Transform3D transform = node->get_global_transform();
-	should_play_instance = ListenerImpl::distance_to_nearest_listener(transform.get_origin()) <= max_distance * max_distance;
+	should_play_instance = ListenerImpl::distance_to_nearest_listener(transform.get_origin() / FMODStudioModule::get_singleton()->distance_scale_2d) <= max_distance * max_distance;
 
 	if (force || should_play_instance != is_playing())
 	{

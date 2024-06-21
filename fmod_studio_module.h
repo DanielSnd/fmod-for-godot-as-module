@@ -50,7 +50,7 @@ public:
 	void set_distance_scale_2d(float v) {
 		distance_scale_2d = v;
 	}
-	float get_distance_scale_2d() {
+	float get_distance_scale_2d() const {
 		return distance_scale_2d;
 	}
 	bool already_initialized = false;

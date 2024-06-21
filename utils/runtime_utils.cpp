@@ -48,7 +48,7 @@ void RuntimeUtils::to_3d_attributes_transform_physicsbody(const Ref<FmodTypes::F
 	{
 		const Transform3D transform3d = transform;
 
-		transform3d_to_3dattributes(transform3d, fmod_attributes, physicsbody);
+		transform3d_to_3dattributes(transform3d, fmod_attributes, physicsbody, distance_scale_2d);
 		attributes->set_3d_attributes(fmod_attributes);
 	}
 	else if (transform_type == Variant::TRANSFORM2D)
@@ -75,7 +75,7 @@ void RuntimeUtils::to_3d_attributes(const Ref<FmodTypes::FMOD_3D_ATTRIBUTES> &at
 		case Variant::TRANSFORM3D:
 		{
 			Transform3D transform3d = position;
-			transform3d_to_3dattributes(transform3d, fmod_attributes);
+			transform3d_to_3dattributes(transform3d, fmod_attributes, nullptr, distance_scale_2d);
 			attributes->set_3d_attributes(fmod_attributes);
 			break;
 		}
@@ -89,7 +89,7 @@ void RuntimeUtils::to_3d_attributes(const Ref<FmodTypes::FMOD_3D_ATTRIBUTES> &at
 		case Variant::VECTOR3:
 		{
 			Vector3 vector3 = position;
-			vector3_to_fmod_vector(vector3, fmod_attributes.position);
+			vector3_to_fmod_vector(vector3, fmod_attributes.position, distance_scale_2d);
 			vector3_to_fmod_vector(Vector3(0, 0, 1), fmod_attributes.forward);
 			vector3_to_fmod_vector(Vector3(0, 1, 0), fmod_attributes.up);
 			attributes->set_3d_attributes(fmod_attributes);
