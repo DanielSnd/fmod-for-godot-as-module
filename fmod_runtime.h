@@ -19,6 +19,8 @@
 #include "utils/runtime_utils.h"
 
 class FMODStudioModule;
+class StudioListener3D;
+class StudioListener2D;
 
 class FMODRuntime : public Node
 {
@@ -85,6 +87,7 @@ class FMODRuntime : public Node
 		StudioListener2D* create_studio_listener_2d();
 
 		StudioListener3D* create_studio_listener_3d();
+
         String path_to_guid(const String &path);
 
         Ref<StudioApi::EventDescription> get_event_description(const Ref<EventAsset> &event_asset);
