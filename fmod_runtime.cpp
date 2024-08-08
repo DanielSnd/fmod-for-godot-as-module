@@ -60,6 +60,8 @@ void FMODRuntime::_bind_methods() {
     ClassDB::bind_method(D_METHOD("stop_looped_id","event_guid","node_instance_id"), &FMODRuntime::stop_looped_id);
     ClassDB::bind_method(D_METHOD("stop_looped","event_asset","node_instance_id"), &FMODRuntime::stop_looped);
 
+    ClassDB::bind_method(D_METHOD("create_studio_listener_2d"), &FMODRuntime::create_studio_listener_2d);
+    ClassDB::bind_method(D_METHOD("create_studio_listener_3d"), &FMODRuntime::create_studio_listener_3d);
 
     ClassDB::bind_method(D_METHOD("play_one_shot_volume","event_asset","volume","position"), &FMODRuntime::play_one_shot_volume,DEFVAL(Variant{}));
     ClassDB::bind_method(D_METHOD("play_one_shot_path_volume","event_path","volume","position"), &FMODRuntime::play_one_shot_path_volume,DEFVAL(Variant{}));
@@ -309,6 +311,14 @@ void FMODRuntime::setup_button_sfx(Control* _button) {
     if (_button->has_signal("pressed")) {
         _button->connect("pressed",callable_mp(this,&FMODRuntime::play_click_sfx));
     }
+}
+
+StudioListener2D* FMODRuntime::create_studio_listener_2d() {
+    return memnew(StudioListener2D);
+}
+
+StudioListener3D* FMODRuntime::create_studio_listener_3d() {
+    return memnew(StudioListener3D);
 }
 
 // 	func setup_click_and_hover_sfx_c(button:Control,callable : Callable,is_return:bool = false):

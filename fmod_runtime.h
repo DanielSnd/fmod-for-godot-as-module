@@ -13,6 +13,7 @@
 #include "fmod_assets.h"
 #include "fmod_studio_module.h"
 #include "scene/studio_event_emitter.h"
+#include "scene/studio_listener.h"
 #include "scene/main/window.h"
 #include "utils/debug_monitors.h"
 #include "utils/runtime_utils.h"
@@ -81,6 +82,9 @@ class FMODRuntime : public Node
 		void setup_button_sfx_callback(Control* p_button, const Callable &p_callable);
 		void setup_button_sfx(Control* button);
 
+		StudioListener2D* create_studio_listener_2d();
+
+		StudioListener3D* create_studio_listener_3d();
         String path_to_guid(const String &path);
 
         Ref<StudioApi::EventDescription> get_event_description(const Ref<EventAsset> &event_asset);
